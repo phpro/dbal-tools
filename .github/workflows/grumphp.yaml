@@ -9,6 +9,7 @@ jobs:
                 operating-system: [ubuntu-latest]
                 php-versions: ['8.4']
                 composer-options: ['', '--prefer-lowest']
+                database-platforms: ['postgres']
             fail-fast: false
         name: PHP ${{ matrix.php-versions }} @ ${{ matrix.operating-system }} with ${{ matrix.composer-options }}
         steps:
@@ -42,7 +43,7 @@ jobs:
             - name: Install dependencies PHP
               run: composer update --prefer-dist --no-progress --ignore-platform-req=php+ ${{ matrix.composer-options }}
             - name: Start containers
-              run: docker compose -f "docker-compose.yml" up -d --build --wait
+              run: docker compose -f "docker-compose.yml" up -d --build --wait ${{ matrix.database-platforms }}
             - name: Run the tests
               run: php vendor/bin/grumphp run --no-interaction
               env:
