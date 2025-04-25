@@ -10,6 +10,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
 use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\DBAL\TransactionIsolationLevel;
+use function Psl\Type\string;
 
 final class ConnectionManager
 {
@@ -33,7 +34,7 @@ final class ConnectionManager
 
             // Use unique suffix for paratest:
             $dbSuffix = '_test'.((string) getenv('TEST_TOKEN'));
-            $dbName = ($connectionParams['dbname'] ?? '').$dbSuffix;
+            $dbName = string()->assert($connectionParams['dbname']).$dbSuffix;
 
             // Try creating database
             $preConnection = $connectionFactory->createConnection($connectionParams, $dbalConfig);
