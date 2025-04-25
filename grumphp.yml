@@ -12,8 +12,6 @@ grumphp:
         phpcsfixer:
             config: ".php-cs-fixer.php"
             config_contains_finder: true
-        securitychecker_composeraudit:
-            run_always: true
         clover_coverage:
             clover_file: 'coverage/clover.xml'
             minimum_level: 100
