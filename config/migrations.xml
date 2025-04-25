@@ -7,7 +7,7 @@
             <argument type="service" id="doctrine.migrations.configuration_loader" />
             <argument type="service" id="logger" />
             <call method="setService">
-                <argument type="string" id="Doctrine\Migrations\Provider\SchemaProvider" />
+                <argument type="string">Doctrine\Migrations\Provider\SchemaProvider</argument>
                 <argument type="service" id="Phpro\DbalTools\Schema\ApplicationSchemaProvider" />
             </call>
         </service>
