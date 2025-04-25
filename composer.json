@@ -25,7 +25,7 @@
         "doctrine/dbal": "^4.2",
         "symfony/console": "^7.2",
         "symfony/dependency-injection": "^7.2",
-        "symfony/http-kernel": "^7.2.5",
+        "symfony/http-kernel": "^7.2",
         "symfony/config": "^7.2",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/doctrine-bundle": "^2.14",
