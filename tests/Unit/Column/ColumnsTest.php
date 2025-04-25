@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace PhproTest\DbalTools\Column;
 
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Column\Column;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Column\TableColumnsTrait;
 use Phpro\DbalTools\Schema\Table;
-use Doctrine\DBAL\Types\Type;
-use Doctrine\DBAL\Types\Types;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 

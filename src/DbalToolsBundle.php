@@ -12,11 +12,11 @@ final class DbalToolsBundle extends AbstractBundle
 {
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $configDir = __DIR__ . '/../config';
+        $configDir = __DIR__.'/../config';
 
-        $container->import($configDir . '/commands.xml');
-        $container->import($configDir . '/fixtures.xml');
-        $container->import($configDir . '/migrations.xml');
-        $container->import($configDir . '/schema.xml');
+        $container->import($configDir.'/commands.xml');
+        $container->import($configDir.'/fixtures.xml');
+        $container->import($configDir.'/migrations.xml');
+        $container->import($configDir.'/schema.xml');
     }
 }

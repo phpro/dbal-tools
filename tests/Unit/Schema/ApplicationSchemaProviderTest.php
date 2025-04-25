@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace PhproTest\DbalTools\Schema;
 
+use Doctrine\DBAL\Schema\Sequence as DoctrineSequence;
+use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Schema\ApplicationSchemaProvider;
 use Phpro\DbalTools\Schema\Sequence;
 use Phpro\DbalTools\Schema\Table;
-use Doctrine\DBAL\Schema\Sequence as DoctrineSequence;
-use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 

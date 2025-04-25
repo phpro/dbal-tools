@@ -1,0 +1,22 @@
+grumphp:
+    fixer:
+        enabled: true
+        fix_by_default: true
+    tasks:
+        paratest: ~
+        composer:
+            strict: false
+            no_check_publish: true
+        psalm:
+            no_cache: true
+        phpcsfixer:
+            config: ".php-cs-fixer.php"
+            config_contains_finder: true
+        securitychecker_composeraudit:
+            run_always: true
+        clover_coverage:
+            clover_file: 'coverage/clover.xml'
+            minimum_level: 100
+            target_level: 100
+            metadata:
+                priority: -100
