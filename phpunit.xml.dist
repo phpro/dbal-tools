@@ -35,6 +35,7 @@
         </include>
         <exclude>
             <file>src/DbalToolsBundle.php</file>
+            <directory>src/Console/Command</directory>
             <directory>src/Test</directory>
         </exclude>
     </source>
