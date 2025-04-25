@@ -319,7 +319,131 @@ This package contains a set of tools that can be used to test your code against 
 If you are using paratest, the system will automatically create a new database for each process.
 This way, tests can independently run in parallel resulting in a super fast test-suite.
 
+### The DbalTestCase class
 
+If you want to test a class that executes database queries, you can use the `DbalTestCase` class.
+This class provides tools to build up the database schema, load testing fixtures and assert if database records exist.
+An example on how to test the repository we created above:
+
+```php
+use App\Doctrine\Schema\UsersTable;
+use App\Doctrine\Schema\UsersTableColumns;
+use App\Entity\User;
+use App\Repository\UsersRepository;
+use Phpro\DbalTools\Expression\Comparison;
+use Phpro\DbalTools\Expression\Composite;
+use Phpro\DbalTools\Expression\LiteralString;
+use Phpro\DbalTools\Test\DbalTestCase;
+use PHPUnit\Framework\Attributes\Test;
+
+final class UsersRepositoryTest extends DbalTestCase
+{
+    protected function createFixtures(): void
+    {
+        self::insert(
+            UsersTable::name(),
+            UsersTable::columnTypes(),
+            $this->fixtures['user1'] = [
+                UsersTableColumns::Id->value => '07220bfb-00ff-4f69-9543-bb7a959ad452',
+                UsersTableColumns::Username->value => 'user1',
+            ],
+        );
+    }
+
+    protected static function schemaTables(): array
+    {
+        return [UsersTable::class];
+    }
+
+    #[Test]
+    public function it_can_fetch_user_by_id(): void
+    {
+        $repository = $this->createRepository();
+        $user1 = $repository->findById($this->fixtures['user1'][UsersTableColumns::Id->value]);
+
+        self::assertSame($this->fixtures['user1'][UsersTableColumns::Id->value], $user1->id);
+        self::assertSame($this->fixtures['user1'][UsersTableColumns::Username->value], $user1->userName);
+    }
+
+    #[Test]
+    public function it_can_create_user(): void
+    {
+        $repository = $this->createRepository();
+        $repository->create(new User('dea2303c-0224-4765-9712-7847a49d8eb7', 'user2'));
+
+        self::assertRecordExists(UsersTable::name(), Composite::and(
+            Comparison::equal(UsersTableColumns::Id, new LiteralString('dea2303c-0224-4765-9712-7847a49d8eb7')),
+            Comparison::equal(UsersTableColumns::Username, new LiteralString('user2')),
+        ));
+    }
+
+    private function createRepository(): UsersRepository
+    {
+        return new UsersRepository($this->connection());
+    }
+}
+```
+
+### The DbalReaderTestCase class
+
+If you have a class that performs a very specific database lookup, you can use the `DbalReaderTestCase` class.
+This class will only load the fixtures that are needed for the test once instead of before each test, resulting in a faster test suite.
+
+Example:
+
+```php
+use App\Doctrine\Schema\UsersTable;
+use App\Doctrine\Schema\UsersTableColumns;
+use Phpro\DbalTools\Test\DbalReaderTestCase;
+use PHPUnit\Framework\Attributes\Test;
+
+final class UsersLookupTest extends DbalReaderTestCase
+{
+    protected function createFixtures(): void
+    {
+        self::insert(
+            UsersTable::name(),
+            UsersTable::columnTypes(),
+            $this->fixtures['user1'] = [
+                UsersTableColumns::Id->value => '07220bfb-00ff-4f69-9543-bb7a959ad452',
+                UsersTableColumns::Username->value => 'user1',
+                UsersTableColumns::Active->value => true,
+            ],
+            $this->fixtures['user2'] = [
+                UsersTableColumns::Id->value => '503beea0-1b37-4303-b8d7-e23f16db0ed6',
+                UsersTableColumns::Username->value => 'user1',
+                UsersTableColumns::Active->value => false,
+            ],
+        );
+    }
+
+    protected static function schemaTables(): array
+    {
+        return [UsersTable::class];
+    }
+
+    #[Test]
+    public function it_can_find_active_users(): void
+    {
+        $queryHandler = new FindActiveUsersHandler($this->connection());
+        $users = $queryHandler->handle(new ActiveUsersQuery(isActive: true));
+
+        self::assertCount(1, $users);
+        self::assertSame($this->fixtures['user1'][UsersTableColumns::Id->value], $users[0]->id);
+        
+    }
+
+    #[Test]
+    public function it_can_find_inactive_users(): void
+    {
+        $queryHandler = new FindActiveUsersHandler($this->connection());
+        $users = $queryHandler->handle(new ActiveUsersQuery(isActive: false));
+
+        self::assertCount(1, $users);
+        self::assertSame($this->fixtures['user2'][UsersTableColumns::Id->value], $users[0]->id);
+    }
+}
+```
 
 ## About
 
