@@ -144,6 +144,84 @@ This way, you can use doctrine:migrations, just like you would in a regular ORM 
 ./bin/console doctrine:migrations:migrate
 ```
 
+## Building models and repositories
+
+Since no ORM is being used, the main structure for building models and repositories would follow following pattern:
+
+
+You can build your entities in raw PHP without any mapping limitations:
+(just using public props here for simplicity)
+
+```php
+namespace App\Entity;
+
+class User
+{
+    public function __construct(
+        public string $id,
+        public string $userName
+    ) {
+    }
+}
+```
+
+A repository could look like this:
+
+```php
+namespace App\Repository;
+
+use App\Doctrine\Schema\UsersTable;
+use App\Doctrine\Schema\UsersTableColumns;
+use App\Entity\User;
+use Doctrine\DBAL\Connection;
+use Phpro\DbalTools\Expression\Comparison;
+use Phpro\DbalTools\Expression\Factory\NamedParameter;
+
+class UsersRepository
+{
+    public function __construct(private Connection $connection)
+    {
+    }
+
+    public function findById(string $id): ?User
+    {
+        $qb = $this->connection->createQueryBuilder();
+        $qb->select(...UsersTable::columns()->select())
+            ->from(UsersTable::name())
+            ->where(Comparison::equal(
+                UsersTableColumns::Id,
+                NamedParameter::createForTableColumn($qb, UsersTableColumns::Id, $id)
+            )->toSQL());
+
+        if (!$row = $qb->fetchAssociative()) {
+            return null;
+        }
+
+        return new User(
+            $row[UsersTableColumns::Id->value],
+            $row[UsersTableColumns::Username->value],
+        );
+    }
+
+    public function create(User $user): void
+    {
+        $this->connection->insert(
+            UsersTable::name(),
+            [
+                UsersTableColumns::Id->value => $user->id,
+                UsersTableColumns::Username->value => $user->userName,
+            ],
+            UsersTable::columnTypes()
+        );
+    }
+}
+```
+
+As you can see, you can use the schema configuration to build your queries.
+If any of the table names or column names change, you will only have to change it in one place.
+In a real application, you can split up a data mapper that maps the entity to the table and back.
+That way, you have full control on how the data is made available in the entity.
+
 ## Fixtures
 
 This package contains a command to load fixtures.
@@ -185,15 +263,16 @@ final readonly class UserFixtures implements Fixture
                 continue;
             }
 
-            yield $fixture->id()->value() => $fixture;
+            yield $fixture->id => $fixture;
             $this->userRepository->create($fixture);
         }
     }
 
     public function exists(object $x): bool
     {
-        return (bool) $this->userRepository->findById($x->id());
+        return (bool) $this->userRepository->findById($x->id);
     }
+
 
     /**
      * @return \Generator<string, User>
@@ -235,6 +314,12 @@ Following options are available:
 ```
 
 ## Testing
+
+This package contains a set of tools that can be used to test your code against a database.
+If you are using paratest, the system will automatically create a new database for each process.
+This way, tests can independently run in parallel resulting in a super fast test-suite.
+
+
 
 ## About
 
