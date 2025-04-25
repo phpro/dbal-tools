@@ -135,7 +135,104 @@ services:
 
 ## Migrations
 
+This package ships with [doctrine/DoctrineMigrationsBundle](https://github.com/doctrine/DoctrineMigrationsBundle).
+It links the schema configuration to the migration commands.
+This way, you can use doctrine:migrations, just like you would in a regular ORM based system.
+
+```sh
+./bin/console doctrine:migrations:diff
+./bin/console doctrine:migrations:migrate
+```
+
 ## Fixtures
+
+This package contains a command to load fixtures.
+In order to create a fixture, you need to create a new PHP class per entity:
+
+```php
+use App\Doctrine\Schema\UsersTable;
+use App\Entity\User;
+use App\Repository\UsersRepository;
+use Phpro\DbalTools\Fixtures\Fixture;
+
+/**
+ * @template-implements Fixture<User>
+ */
+final readonly class UserFixtures implements Fixture
+{
+    public function __construct(
+        private UsersRepository $userRepository,
+    ) {
+    }
+
+    public function type(): string
+    {
+        return User::class;
+    }
+
+    public function tables(): array
+    {
+        return [UsersTable::name()];
+    }
+
+    /**
+     * @return \Generator<string, User>
+     */
+    public function execute(): \Generator
+    {
+        foreach ($this->provideFixtures() as $fixture) {
+            if ($this->exists($fixture)) {
+                continue;
+            }
+
+            yield $fixture->id()->value() => $fixture;
+            $this->userRepository->create($fixture);
+        }
+    }
+
+    public function exists(object $x): bool
+    {
+        return (bool) $this->userRepository->findById($x->id());
+    }
+
+    /**
+     * @return \Generator<string, User>
+     */
+    private function provideFixtures(): \Generator
+    {
+        yield 'admin' => new User(
+            '9080f592-3a1e-433d-8b27-0e109fd1d32c',
+            'admin',
+        );
+    }
+}
+```
+
+Next, you can register the fixture in your service configuration:
+
+```yaml
+services:
+    App\Doctrine\Fixtures\UserFixtures:
+        arguments:
+            - '@App\Repository\UsersRepository'
+        tags:
+            - 'phpro.dbal_tools.fixture'
+
+```
+
+You can now load the fixtures using the command:
+
+```sh
+./bin/console doctrine:fixtures
+```
+
+Following options are available:
+
+```
+--type=TYPE           Only create / truncate specific type (FQCN) "App\Domain\Model\User".
+-t, --truncate        Truncate all fixture tables and relations.
+-r, --reload          Truncate and Import all fixture.
+```
 
 ## Testing
 
