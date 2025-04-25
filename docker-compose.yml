@@ -1,0 +1,33 @@
+services:
+    php:
+        image: docphpro/php84:latest
+        container_name: dbal-tools-php
+        environment:
+            - XDEBUG_MODE=${XDEBUG_MODE:-coverage}
+            - PHP_CS_FIXER_IGNORE_ENV=1
+            - DATABASE_URL=postgresql://root:toor@postgres:5432/dbal_tools?serverVersion=16&charset=utf8
+        entrypoint: /start.sh nginx
+        depends_on:
+            postgres:
+                condition: service_healthy
+        volumes:
+            - ./:/app
+            - ~/.composer:/root/.composer
+    postgres:
+        image: postgres:16.6
+        container_name: dbal-tools-postgres
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:-root}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-toor}
+            POSTGRES_DB: ${POSTGRES_DB:-dbal_tools}
+        volumes:
+            - dbal-tools-postgres:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-U", "root", "-d", "dbal_tools" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        ports:
+            - "5432:5432"
+volumes:
+    dbal-tools-postgres: {}

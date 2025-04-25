@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+     backupGlobals="false"
+     colors="true"
+     bootstrap="vendor/autoload.php"
+     displayDetailsOnPhpunitDeprecations="true"
+     displayDetailsOnTestsThatTriggerDeprecations="true"
+     displayDetailsOnTestsThatTriggerErrors="true"
+     displayDetailsOnTestsThatTriggerNotices="true"
+     displayDetailsOnTestsThatTriggerWarnings="true"
+     cacheDirectory=".phpunit.cache"
+>
+    <php>
+        <ini name="display_errors" value="1" />
+        <ini name="error_reporting" value="-1" />
+        <ini name="variables_order" value="EGPCS" />
+        <env name="DATABASE_URL" value="postgresql://root:toor@127.0.0.1:5432/dbal_tools?serverVersion=16&amp;charset=utf8" />
+    </php>
+
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <file>src/DbalToolsBundle.php</file>
+            <directory>src/DependencyInjection</directory>
+            <directory>src/Test</directory>
+        </exclude>
+    </source>
+
+    <coverage includeUncoveredFiles="true">
+        <report>
+            <clover outputFile="coverage/clover.xml"/>
+            <html outputDirectory="coverage/html"/>
+        </report>
+    </coverage>
+
+    <extensions>
+    </extensions>
+</phpunit>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="1"
+    phpVersion="8.4"
+    resolveFromConfigFile="true"
+    checkForThrowsDocblock="false"
+    checkForThrowsInGlobalScope="false"
+    ensureOverrideAttribute="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config ../vendor/vimeo/psalm/config.xsd"
+    findUnusedPsalmSuppress="true"
+    findUnusedCode="false"
+    findUnusedBaselineEntry="true"
+    findUnusedVariables="true"
+>
+    <projectFiles>
+        <directory name="src"/>
+        <ignoreFiles>
+            <directory name="config"/>
+            <directory name="tests"/>
+        </ignoreFiles>
+    </projectFiles>
+    <plugins>
+        <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin"/>
+        <pluginClass class="Psl\Psalm\Plugin"/>
+    </plugins>
+    <stubs>
+        <file name="stubs/doctrine-dbal-query.php"/>
+    </stubs>
+</psalm>
