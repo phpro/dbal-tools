@@ -28,6 +28,9 @@ abstract class DbalTypeTestCase extends DbalReaderTestCase
         self::assertSame($this->expectSqlDeclaration($platform, $columns), $actual);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function provideDeclarationColumnOptions(): array
     {
         return [];
@@ -42,8 +45,8 @@ abstract class DbalTypeTestCase extends DbalReaderTestCase
             $result->fetchAllAssociative(),
             static fn (array $row): array => pull_with_key(
                 $row,
-                static fn (string $key, mixed $value) => contains($columns, $key) ? $type->convertToPHPValue($value, $platform) : $value,
-                static fn (string $key, mixed $value) => $key,
+                static fn (string $key, mixed $value): mixed => contains($columns, $key) ? $type->convertToPHPValue($value, $platform) : $value,
+                static fn (string $key, mixed $value): string => $key,
             )
         );
     }

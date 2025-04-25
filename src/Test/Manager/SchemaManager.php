@@ -10,13 +10,16 @@ use Doctrine\DBAL\Schema\Sequence as DoctrineSequence;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use Phpro\DbalTools\Schema\Sequence;
 use Phpro\DbalTools\Schema\Table;
+use function Psl\Iter\reduce;
 use function Psl\Vec\map;
 
 final readonly class SchemaManager
 {
     public static function instance(): self
     {
+        /** @var Connection $connection */
         static $connection = ConnectionManager::getConnection();
+        /** @var AbstractSchemaManager $schemaManager */
         static $schemaManager = $connection->createSchemaManager();
 
         return new self($connection, $schemaManager);
@@ -28,7 +31,9 @@ final readonly class SchemaManager
     ) {
     }
 
-    /** @psalm-param list<class-string<Table>> $schemaTables */
+    /**
+     * @psalm-param list<class-string<Table>> $schemaTables
+     */
     public function createTables(array $schemaTables): void
     {
         if (!\count($schemaTables)) {
@@ -55,24 +60,29 @@ final readonly class SchemaManager
         }
     }
 
-    /** @psalm-param list<class-string<Table>|string> $schemaTables */
+    /**
+     * @psalm-param list<class-string<Table>|string> $schemaTables
+     */
     public function dropTables(array $schemaTables = []): void
     {
         if (!\count($schemaTables)) {
             return;
         }
 
-        $this->connection->executeStatement(\array_reduce($schemaTables,
-            /** @param class-string<Table> $schemaTable */
+        $this->connection->executeStatement(reduce(
+            $schemaTables,
+            /** @param class-string<Table>|string $schemaTable */
             static fn (string $sql, string $schemaTable): string => $sql
                 .'DROP TABLE IF EXISTS '
-                .(\str_contains($schemaTable, '\\') ? $schemaTable::name() : $schemaTable)
+                .(is_a($schemaTable, Table::class, allow_string: true) ? $schemaTable::name() : $schemaTable)
                 .' CASCADE;',
             ''
         ));
     }
 
-    /** @psalm-param list<class-string<Sequence>> $schemaTables */
+    /**
+     * @psalm-param list<class-string<Sequence>> $schemaSequences
+     */
     public function createSequences(array $schemaSequences = []): void
     {
         if (!\count($schemaSequences)) {

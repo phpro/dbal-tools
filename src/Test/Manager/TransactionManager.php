@@ -10,6 +10,7 @@ final readonly class TransactionManager
 {
     public static function instance(): self
     {
+        /** @var Connection $connection */
         static $connection = ConnectionManager::getConnection();
 
         return new self($connection);

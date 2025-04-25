@@ -105,7 +105,7 @@ abstract class DbalTestCase extends TestCase
     protected static function getRecord(string $table, Expression $where): array
     {
         $record = static::connection()->fetchAssociative("SELECT * FROM {$table} WHERE {$where->toSql()};");
-        if (!$record) {
+        if (!is_array($record)) {
             throw new \RuntimeException('Record not found');
         }
 

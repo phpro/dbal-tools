@@ -13,11 +13,14 @@ use Doctrine\DBAL\TransactionIsolationLevel;
 
 final class ConnectionManager
 {
+    /**
+     * @psalm-suppress InvalidArgument - Unable to infer createConnection parameters.
+     */
     public static function getConnection(): Connection
     {
         static $connection = (static function (): Connection {
             $connectionParams = [
-                ...(new DsnParser(['postgresql' => 'pdo_pgsql']))->parse((string) ($_ENV['DATABASE_URL'] ?? '')),
+                ...(new DsnParser(['postgresql' => 'pdo_pgsql']))->parse($_ENV['DATABASE_URL'] ?? ''),
                 'driverOptions' => [
                     \PDO::ATTR_EMULATE_PREPARES => false,
                 ],
@@ -29,7 +32,7 @@ final class ConnectionManager
             $connectionFactory = new ConnectionFactory([]);
 
             // Use unique suffix for paratest:
-            $dbSuffix = '_test'.getenv('TEST_TOKEN');
+            $dbSuffix = '_test'.((string) getenv('TEST_TOKEN'));
             $dbName = $connectionParams['dbname'].$dbSuffix;
 
             // Try creating database
@@ -49,6 +52,7 @@ final class ConnectionManager
             return $connection;
         })();
 
+        /** @var Connection */
         return $connection;
     }
 }
