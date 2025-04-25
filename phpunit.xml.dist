@@ -35,7 +35,6 @@
         </include>
         <exclude>
             <file>src/DbalToolsBundle.php</file>
-            <directory>src/DependencyInjection</directory>
             <directory>src/Test</directory>
         </exclude>
     </source>
