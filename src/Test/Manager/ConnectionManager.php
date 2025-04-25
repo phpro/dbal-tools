@@ -33,7 +33,7 @@ final class ConnectionManager
 
             // Use unique suffix for paratest:
             $dbSuffix = '_test'.((string) getenv('TEST_TOKEN'));
-            $dbName = $connectionParams['dbname'].$dbSuffix;
+            $dbName = ($connectionParams['dbname'] ?? '').$dbSuffix;
 
             // Try creating database
             $preConnection = $connectionFactory->createConnection($connectionParams, $dbalConfig);
