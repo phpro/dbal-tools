@@ -39,7 +39,9 @@
         "psalm/plugin-symfony": "^5.2",
         "php-standard-library/psalm-plugin": "^2.3",
         "php-cs-fixer/shim": "^3.75",
-        "phpro/grumphp-shim": "^2.12"
+        "phpro/grumphp-shim": "^2.12",
+        "amphp/dns": "^2.4",
+        "amphp/socket": "^2.3.1"
     },
     "config": {
         "allow-plugins": {
