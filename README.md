@@ -1,5 +1,5 @@
 [![Installs](https://img.shields.io/packagist/dt/phpro/dbal-tools.svg)](https://packagist.org/packages/phpro/dbal-tools/stats)
-[![Packagist](https://img.shields.io/packagist/v/phpro/dbal-tools.svg)](https://packagist.org/packages/phpro/api-problem-bundle)
+[![Packagist](https://img.shields.io/packagist/v/phpro/dbal-tools.svg)](https://packagist.org/packages/phpro/dbal-tools)
 
 
 # DBAL Tools
@@ -454,4 +454,4 @@ Please take a look at our rules before [contributing your code](CONTRIBUTING).
 
 ### License
 
-api-problem-bundle is licensed under the [MIT License](LICENSE).
+dbal-tools is licensed under the [MIT License](LICENSE).
