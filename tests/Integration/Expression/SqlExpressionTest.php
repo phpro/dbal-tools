@@ -137,4 +137,18 @@ final class SqlExpressionTest extends DbalReaderTestCase
 
         self::assertSame($actualResults['0'], 1);
     }
+
+    #[Test]
+    public function it_can_escape_placeholder(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select(SqlExpression::escapePlaceholder('\'["a", "b"]\'::jsonb ?& array[\'a\']')->toSQL());
+
+        $actualResults = $qb->fetchNumeric();
+        if (!$actualResults) {
+            $this->fail('No results found');
+        }
+
+        self::assertSame($actualResults['0'], true);
+    }
 }

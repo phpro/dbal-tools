@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phpro\DbalTools\Expression;
 
+use function Psl\Str\replace;
 use function Psl\Type\non_empty_string;
 
 final readonly class SqlExpression implements Expression
@@ -52,6 +53,14 @@ final readonly class SqlExpression implements Expression
     public static function int(int $value): self
     {
         return new self((string) $value);
+    }
+
+    /**
+     * @param non-empty-string $expression
+     */
+    public static function escapePlaceholder(string $expression): self
+    {
+        return new self(non_empty_string()->assert(replace($expression, '?', '??')));
     }
 
     /**
