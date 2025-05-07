@@ -70,6 +70,14 @@ final class CompositeQuery implements Expression
     /**
      * @param non-empty-string $name
      */
+    public function hasSubQuery(string $name): bool
+    {
+        return array_key_exists($name, $this->with);
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
     public function createSubQuery(string $name): QueryBuilder
     {
         $query = $this->connection->createQueryBuilder();

@@ -138,6 +138,16 @@ final class CompositeQueryTest extends DbalReaderTestCase
     }
 
     #[Test]
+    public function it_can_check_if_a_subquery_exists(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+        $compositeQuery->createSubQuery('x');
+
+        self::assertTrue($compositeQuery->hasSubQuery('x'));
+        self::assertFalse($compositeQuery->hasSubQuery('y'));
+    }
+
+    #[Test]
     public function it_can_move_main_query_to_subquery(): void
     {
         $compositeQuery = CompositeQuery::from(self::connection());
