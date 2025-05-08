@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhproTest\DbalTools\Expression;
+namespace PhproTest\DbalTools\Unit\Expression;
 
 use Phpro\DbalTools\Expression\Expression;
 use Phpro\DbalTools\Expression\Expressions;
@@ -38,6 +38,18 @@ final class ExpressionsTest extends TestCase
             $this->createExpression('world'),
         );
         $actual = $expressions->traverse(static fn (Expression $expression): string => $expression->toSQL());
+
+        self::assertSame(['hello', 'world'], $actual);
+    }
+
+    #[Test]
+    public function it_can_grab_expression_values(): void
+    {
+        $expressions = new Expressions(
+            $this->createExpression('hello'),
+            $this->createExpression('world'),
+        );
+        $actual = $expressions->values();
 
         self::assertSame(['hello', 'world'], $actual);
     }

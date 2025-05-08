@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhproTest\DbalTools\Schema;
+namespace PhproTest\DbalTools\Unit\Schema;
 
 use Doctrine\DBAL\Schema\Sequence as DoctrineSequence;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;

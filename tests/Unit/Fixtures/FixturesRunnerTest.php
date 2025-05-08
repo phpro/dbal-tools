@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhproTest\DbalTools\Fixtures;
+namespace PhproTest\DbalTools\Unit\Fixtures;
 
 use Phpro\DbalTools\Fixtures\Fixture;
 use Phpro\DbalTools\Fixtures\FixturesRunner;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhproTest\DbalTools\Collection;
+namespace PhproTest\DbalTools\Unit\Collection;
 
 use Phpro\DbalTools\Collection\PatchCollection;
 use PHPUnit\Framework\Attributes\Test;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhproTest\DbalTools\Column;
+namespace PhproTest\DbalTools\Unit\Column;
 
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use Doctrine\DBAL\Types\Type;

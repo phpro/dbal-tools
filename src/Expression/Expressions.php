@@ -61,6 +61,16 @@ final readonly class Expressions implements \IteratorAggregate, \Countable
         return map($this->expressions, $mapper);
     }
 
+    /**
+     * @return list<string>
+     */
+    public function values(): array
+    {
+        return $this->traverse(
+            static fn (Expression $expression): string => $expression->toSQL(),
+        );
+    }
+
     public function join(string $separator): Expression
     {
         /** @var non-empty-string $rawExpression */
