@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhproTest\DbalTools\Integration\Expression;
 
 use Phpro\DbalTools\Expression\Cast;
+use Phpro\DbalTools\Expression\LiteralString;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Test\DbalReaderTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -31,6 +32,9 @@ final class CastTest extends DbalReaderTestCase
             Cast::decimal(
                 new SqlExpression('1.23')
             )->toSQL(),
+            Cast::date(
+                new LiteralString('2023-01-01 10:00:00')
+            )->toSQL()
         );
 
         $actualResults = $qb->fetchNumeric();
@@ -40,5 +44,6 @@ final class CastTest extends DbalReaderTestCase
 
         self::assertSame($actualResults[0], '1');
         self::assertSame($actualResults[1], '1.23');
+        self::assertSame($actualResults[2], '2023-01-01');
     }
 }

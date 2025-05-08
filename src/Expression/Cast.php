@@ -22,6 +22,11 @@ final readonly class Cast implements Expression
         return new self('DECIMAL', $expression);
     }
 
+    public static function date(Expression $expression): self
+    {
+        return new self('DATE', $expression);
+    }
+
     /**
      * @return non-empty-string
      */
