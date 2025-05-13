@@ -27,6 +27,11 @@ final readonly class Cast implements Expression
         return new self('DATE', $expression);
     }
 
+    public static function timestamp(Expression $expression): self
+    {
+        return new self('TIMESTAMP', $expression);
+    }
+
     /**
      * @return non-empty-string
      */
