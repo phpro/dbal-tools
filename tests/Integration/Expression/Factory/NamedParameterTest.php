@@ -51,6 +51,33 @@ final class NamedParameterTest extends DbalReaderTestCase
         self::assertSame($actualResults[0], 'hello');
         self::assertSame($actualResults[1], 'world');
     }
+
+    #[Test]
+    public function it_can_create_named_parameter_for_type(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select(
+            NamedParameter::createForType(
+                $qb,
+                Type::getType(Types::STRING),
+                'hello'
+            )->toSQL(),
+            NamedParameter::createForType(
+                $qb,
+                Types::STRING,
+                'world',
+                ':paramName'
+            )->toSQL()
+        );
+
+        $actualResults = $qb->fetchNumeric();
+        if (!$actualResults) {
+            $this->fail('No results found');
+        }
+
+        self::assertSame($actualResults[0], 'hello');
+        self::assertSame($actualResults[1], 'world');
+    }
 }
 
 enum NamedParameterTableColumns: string implements TableColumnsInterface
