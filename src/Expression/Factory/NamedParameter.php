@@ -6,6 +6,7 @@ namespace Phpro\DbalTools\Expression\Factory;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Expression\SqlExpression;
 
