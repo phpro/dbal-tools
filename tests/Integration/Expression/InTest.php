@@ -42,4 +42,22 @@ final class InTest extends DbalReaderTestCase
         self::assertSame(1, $actualResults[0]['countable']);
         self::assertSame(3, $actualResults[1]['countable']);
     }
+
+    #[Test]
+    public function it_can_evaluate_from_iterable(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select('countable')
+            ->from(
+                '(VALUES (1), (2), (3))',
+                'foo (countable)'
+            )->where(
+                In::fromIterable(new SqlExpression('countable'), ['1', '3'], static fn (string $value) => new SqlExpression($value))->toSQL()
+            );
+
+        $actualResults = $qb->fetchAllAssociative();
+        self::assertCount(2, $actualResults);
+        self::assertSame(1, $actualResults[0]['countable']);
+        self::assertSame(3, $actualResults[1]['countable']);
+    }
 }
