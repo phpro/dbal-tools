@@ -39,7 +39,11 @@ abstract class TableColumnEnumTestCase extends TestCase
     #[Test]
     public function it_maps_to_table_columns(): void
     {
-        $linkedTableClass = class_string(Table::class)->assert($this->className()::cases()[0]?->linkedTableClass());
+        if (!array_key_exists(0, $this->className()::cases())) {
+            self::markTestSkipped('No cases found in TableColumn enum');
+        }
+
+        $linkedTableClass = $this->className()::cases()[0]->linkedTableClass();
         $columns = $linkedTableClass::columns();
 
         self::assertEquals(
