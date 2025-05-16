@@ -7,10 +7,8 @@ namespace Phpro\DbalTools\Test\Column;
 use Doctrine\DBAL\Types\Type;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Column\TableColumnsInterface;
-use Phpro\DbalTools\Schema\Table;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use function Psl\Type\class_string;
 use function Psl\Vec\map;
 
 abstract class TableColumnEnumTestCase extends TestCase
