@@ -14,6 +14,7 @@ final class DbalToolsBundle extends AbstractBundle
     {
         $configDir = __DIR__.'/../config';
 
+        $container->import($configDir.'/collection.xml');
         $container->import($configDir.'/commands.xml');
         $container->import($configDir.'/fixtures.xml');
         $container->import($configDir.'/migrations.xml');
