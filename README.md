@@ -101,6 +101,22 @@ services:
 
 This way, it is available inside the `Doctrine\DBAL\Schema\Schema` service and can be used to create the table through migrations.
 
+If you want to make sure that all columns are being used inside the table, you can add a PHPUnit `TableColumnEnumTestCase` for the implementation:
+
+```php
+<?php
+
+use Phpro\DbalTools\Test\Column\TableColumnEnumTestCase;
+
+final class UsersTableColumnsTest extends TableColumnEnumTestCase
+{
+    public function className(): string
+    {
+        return UsersTableColumns::class;
+    }
+}
+```
+
 ### Configuring sequences
 
 From time to time, you might need a sequence.
