@@ -14,6 +14,7 @@ use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 /**
  * @template T of ConstraintValidatorInterface
+ *
  * @template-extends ConstraintValidatorTestCase<T>
  */
 abstract class DoctrineValidatorTestCase extends ConstraintValidatorTestCase
