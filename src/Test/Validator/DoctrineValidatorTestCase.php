@@ -9,8 +9,13 @@ use Phpro\DbalTools\Schema\Table;
 use Phpro\DbalTools\Test\Manager\ConnectionManager;
 use Phpro\DbalTools\Test\Manager\SchemaManager;
 use Phpro\DbalTools\Test\Manager\TransactionManager;
+use Symfony\Component\Validator\ConstraintValidatorInterface;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
+/**
+ * @template T of ConstraintValidatorInterface
+ * @template-extends ConstraintValidatorTestCase<T>
+ */
 abstract class DoctrineValidatorTestCase extends ConstraintValidatorTestCase
 {
     /**
