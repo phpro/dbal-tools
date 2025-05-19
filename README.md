@@ -461,6 +461,60 @@ final class UsersLookupTest extends DbalReaderTestCase
 }
 ```
 
+### The DoctrineValidatorTestCase class
+
+If you are using `symfony/validator`, you can use the `DoctrineValidatorTestCase` class to test your validation rules.
+This class will use symfony's `ConstraintValidatorTestCase` as a base and will automatically load the database schema and fixtures.
+This way, you can test your validation rules against database records.
+
+```php
+use Phpro\DbalTools\Test\Validator\DoctrineValidatorTestCase;
+use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Validator\ConstraintValidatorInterface;
+
+final class UniqueUsernameValidatorTest extends DoctrineValidatorTestCase
+{
+    protected static function schemaTables(): array
+    {
+        return [UsersTable::class];
+    }
+
+    protected function createFixtures(): void
+    {
+        self::connection()->insert(
+            UsersTable::name(),
+            [
+                UsersTableColumns::Id->value => '2c8c206c-0031-4c85-b36d-a7d5be16c138',
+                UsersTableColumns::Username->value => 'noobslayer23',
+            ],
+            UsersTable::columnTypes(),
+        );
+    }
+
+    protected function createValidator(): ConstraintValidatorInterface
+    {
+        return new UniqueUsernameValidator(
+            self::connection()
+        );
+    }
+
+    #[Test]
+    public function it_must_have_a_unique_username(): void
+    {
+        $constraint = new UniqueUsernameConstraint();
+        $this->validator->validate(new User('f7e2c2df-1786-497b-b71e-43b66073ecc6', 'noobslayer23'), $constraint);
+
+        $violationList = $this->context->getViolations();
+        self::assertSame(1, $violationList->count());
+        self::assertSame(
+            'There is already a user with the username {{ username }}. Please choose another username.',
+            $violationList->get(0)->getMessage()
+        );
+    }
+}
+```
+
+
 ## About
 
 ### Submitting bugs and feature requests
