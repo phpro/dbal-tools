@@ -62,7 +62,7 @@ abstract class DbalTestCase extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::overrideDbalTypes();
+        static::overrideDbalTypes();
         $schemaManager = SchemaManager::instance();
         $schemaManager->createTables(static::schemaTables());
         $schemaManager->createSequences(static::schemaSequences());
@@ -86,7 +86,7 @@ abstract class DbalTestCase extends TestCase
 
     protected static function getDatabasePlatform(): AbstractPlatform
     {
-        return self::connection()->getDatabasePlatform();
+        return static::connection()->getDatabasePlatform();
     }
 
     /**
@@ -98,7 +98,7 @@ abstract class DbalTestCase extends TestCase
     protected static function insert(string $tableName, array $types, array ...$records): void
     {
         foreach ($records as $record) {
-            self::connection()->insert($tableName, $record, $types);
+            static::connection()->insert($tableName, $record, $types);
         }
     }
 
