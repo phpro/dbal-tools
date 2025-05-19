@@ -19,5 +19,6 @@ final class DbalToolsBundle extends AbstractBundle
         $container->import($configDir.'/fixtures.xml');
         $container->import($configDir.'/migrations.xml');
         $container->import($configDir.'/schema.xml');
+        $container->import($configDir.'/validators.xml');
     }
 }

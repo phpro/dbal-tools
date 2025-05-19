@@ -514,6 +514,64 @@ final class UniqueUsernameValidatorTest extends DoctrineValidatorTestCase
 }
 ```
 
+## Validators
+
+This package contains a set of common validators that can be used to validate your data against the database.
+
+### SchemaFieldValidator
+
+This validator can be used to validate if a field exists in the database schema.
+It will perform checks like: Does the provided input length exceed the length of the column in the database schema.
+
+Example configuration:
+
+```yaml
+App\Domain\Model\User:
+  properties:
+    userName:
+      - Phpro\DbalTools\Validator\SchemaFieldConstraint:
+          table: App\Infrastructure\Doctrine\Schema\User\UsersTable
+          column: !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Username
+```
+
+### TableKeyExistsValidator
+
+This validator can be used to validate if a record identified by a key exists in the database.
+It can be used to verify if a relation ID exists before storing it in the database.
+
+Example configuration:
+
+```yaml
+App\Domain\Model\User:
+  properties:
+    companyId:
+      - Phpro\DbalTools\Validator\TableKeyExistsConstraint:
+          table: App\Infrastructure\Doctrine\Schema\Company\CompaniesTable
+          column: !php/enum App\Infrastructure\Doctrine\Schema\Company\CompaniesTableColumns::Id
+```
+
+### UniqueValidator
+
+This validator can be used to validate if a record with the same value exists in the database already to ensure uniqueness.
+
+Example configuration:
+
+```yaml
+App\Domain\Model\User:
+  properties:
+    userName:
+      - Phpro\DbalTools\Validator\UniqueConstraint:
+            columns:
+              "username": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Username
+          
+            # You can specify an alternate message and path name.
+            message: "A user already exists with this username."
+            path: "data.username"
+            
+            # Can be used for updates to check if you are updating the existing record:
+            identifiers:
+              "id": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Id
+```
 
 ## About
 
