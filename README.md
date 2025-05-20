@@ -239,7 +239,7 @@ In a real application, you can split up a data mapper that maps the entity to th
 That way, you have full control on how the data is made available in the entity.
 
 
-## Persisting relations
+### Persisting relations
 
 Inside your model, you might have relations to other models.
 For example, a User can be linked to multiple companies.
@@ -608,7 +608,7 @@ App\Domain\Model\User:
               "id": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Id
 ```
 
-### Building queries
+# Building queries
 
 This package contains a set of tools that helps you build queries based on partial SQL Expressions.
 The base of this is the `Phpro\DbalTools\Expression` interface.
