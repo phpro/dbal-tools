@@ -238,6 +238,41 @@ If any of the table names or column names change, you will only have to change i
 In a real application, you can split up a data mapper that maps the entity to the table and back.
 That way, you have full control on how the data is made available in the entity.
 
+
+## Persisting relations
+
+Inside your model, you might have relations to other models.
+For example, a User can be linked to multiple companies.
+You can use the `Phpro\DbalTools\CollectionPatchCollection` to detect changes in a collection of related entities and deal with the change accordingly:
+
+```php
+use Phpro\DbalTools\CollectionPatchCollection;
+
+$patchCollection = new CollectionPatchCollection();
+$this->patchCollection->patch(
+    newCollection: $user->companies(),
+    previousCollection: $previous?->companies() ?? new Companies(),
+    idProvider: static fn (Company $company) => $company->id(),
+    insert: fn (Company $company) => $this->connection->insert(
+        UserCompaniesTableColumn::name(),
+        [
+            UserCompaniesTableColumn::UserId->value => $user->id(),
+            UserCompaniesTableColumn::CompanyId->value => $company->id(),
+        ],
+        UserCompaniesTableColumn::columnTypes()
+    ),
+    update: fn (Company $company) => null,
+    delete: fn (Company $company) => $this->connection->delete(
+        UserCompaniesTableColumn::name(),
+        [
+            UserCompaniesTableColumn::UserId->value => $user->id(),
+            UserCompaniesTableColumn::CompanyId->value => $company->id(),
+        ],
+        UserCompaniesTableColumn::columnTypes()
+    )
+);
+```
+
 ## Fixtures
 
 This package contains a command to load fixtures.
@@ -572,6 +607,17 @@ App\Domain\Model\User:
             identifiers:
               "id": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Id
 ```
+
+### Building queries
+
+This package contains a set of tools that helps you build queries based on partial SQL Expressions.
+The base of this is the `Phpro\DbalTools\Expression` interface.
+
+A few notable places:
+
+* Every column enum can be used directly as part of an SQL expression.
+* There is a `Phpro\DbalTools\Query\CompositeQuery` that can be used to build composite queries (CTEs)
+* Inside the `Phpro\DbalTools\Expression` namespace, you can find a lot of classes that can be used to build partial SQL expressions.
 
 ## About
 
