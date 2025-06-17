@@ -209,7 +209,7 @@ final class CompositeQuery implements Expression
     public function map(\Closure $modifier): self
     {
         $new = clone $this;
-        $modifier($new->query);
+        $new->query = $modifier($new->query);
 
         return $new;
     }

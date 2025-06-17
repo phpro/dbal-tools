@@ -126,6 +126,30 @@ final class CompositeQueryTest extends DbalReaderTestCase
     }
 
     #[Test]
+    public function it_can_immutably_map_a_full_composite_query_with_all_subqueries_and_change_complete_main_query(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+        $mainQuery = $compositeQuery->mainQuery()->select('1');
+        $expectedMainQuery = self::connection()->createQueryBuilder()->select('3');
+        $subQuery = $compositeQuery->createSubQuery('x')->select('2');
+
+        $newCompositeQuery = $compositeQuery->map(
+            static function (QueryBuilder $newBuilder) use ($mainQuery, $expectedMainQuery): QueryBuilder {
+                self::assertNotSame($mainQuery, $newBuilder);
+
+                return $expectedMainQuery;
+            }
+        );
+
+        self::assertNotSame($compositeQuery, $newCompositeQuery);
+        self::assertNotSame($mainQuery, $newCompositeQuery->mainQuery());
+        self::assertNotSame($subQuery, $newCompositeQuery->subQuery('x'));
+
+        self::assertSame($expectedMainQuery->getSQL(), $newCompositeQuery->mainQuery()->getSQL());
+        self::assertSame($subQuery->getSQL(), $newCompositeQuery->subQuery('x')->getSQL());
+    }
+
+    #[Test]
     public function it_can_grab_subquery(): void
     {
         $compositeQuery = CompositeQuery::from(self::connection());
