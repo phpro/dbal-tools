@@ -14,8 +14,11 @@ use Phpro\DbalTools\Column\Column;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Column\TableColumnsTrait;
+use Phpro\DbalTools\Expression\Expressions;
+use Phpro\DbalTools\Expression\In;
 use Phpro\DbalTools\Expression\IsNotNull;
 use Phpro\DbalTools\Expression\IsNull;
+use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Query\CompositeQuery;
 use Phpro\DbalTools\Schema\Table;
 use Phpro\DbalTools\Test\DbalReaderTestCase;
@@ -252,6 +255,52 @@ final class CompositeQueryTest extends DbalReaderTestCase
 
         self::assertSame([
             ['id' => 3],
+        ], $compositeQuery->execute()->fetchAllAssociative());
+    }
+
+    #[Test]
+    public function it_can_join_on_matching_lookup_table_on_different_target_query(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+        $mainQuery = $compositeQuery->mainQuery();
+
+        $subQuery = self::connection()->createQueryBuilder();
+        $subQuery
+            ->select(CompositeTableColumns::Id->select())
+            ->from(CompositeTable::name())
+            ->where(
+                new In(
+                    CompositeTableColumns::Id,
+                    new Expressions(
+                        SqlExpression::int(1),
+                        SqlExpression::int(2),
+                    )
+                )->toSQL()
+            )->andWhere(
+                (new IsNotNull(
+                    $compositeQuery->joinOnMatchingLookupTableRecords(
+                        'lookup',
+                        self::connection()->createQueryBuilder()
+                            ->select('lookup.id')
+                            ->from('(VALUES (1))', 'lookup (id)'),
+                        CompositeTableColumns::Id->column(),
+                        $subQuery,
+                    )
+                ))->toSQL()
+            );
+        $compositeQuery->addSubQuery('subquery', $subQuery);
+
+        $mainQuery
+            ->select(CompositeTableColumns::Id->select())
+            ->from(CompositeTable::name())
+            ->innerJoin(...$compositeQuery->joinOntoCte(
+                'subquery',
+                CompositeTable::name(),
+                CompositeTableColumns::Id->column(),
+            ));
+
+        self::assertSame([
+            ['id' => 1],
         ], $compositeQuery->execute()->fetchAllAssociative());
     }
 
