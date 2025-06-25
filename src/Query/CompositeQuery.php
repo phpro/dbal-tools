@@ -134,16 +134,19 @@ final class CompositeQuery implements Expression
      * - is no match $column IS NULL
      *
      * @param non-empty-string $subQueryAlias
+     * @param ?QueryBuilder    $targetQuery   can be used to specify a different join target than the main query
      */
     public function joinOnMatchingLookupTableRecords(
         string $subQueryAlias,
         QueryBuilder $subQuery,
         Column $joinColumn,
+        ?QueryBuilder $targetQuery = null,
     ): Column {
         invariant(null !== $joinColumn->from, 'Table name must be set on security join column.');
 
         $this->addSubQuery($subQueryAlias, $subQuery);
-        $this->mainQuery()->leftJoin(
+        $targetQuery = $targetQuery ?? $this->mainQuery();
+        $targetQuery->leftJoin(
             ...$this->joinOntoCte(
                 $subQueryAlias,
                 $joinColumn->from,
