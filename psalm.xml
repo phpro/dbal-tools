@@ -28,4 +28,7 @@
     <stubs>
         <file name="stubs/doctrine-dbal-query.php"/>
     </stubs>
+    <issueHandlers>
+        <InternalMethod errorLevel="suppress" />
+    </issueHandlers>
 </psalm>

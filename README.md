@@ -608,6 +608,34 @@ App\Domain\Model\User:
               "id": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Id
 ```
 
+# Pagination
+
+Dealing with pagination is a task that is often needed.
+This package contains some tools to help you with that:
+
+```php
+use Phpro\DbalTools\Pager\MappingPager;
+use Phpro\DbalTools\Pager\Pager;
+use Phpro\DbalTools\Pager\Pagination;
+use Phpro\DbalTools\Pager\WindowCountPager;
+
+$query = $connection->createQueryBuilder()->select('*')->from('users');
+$userMapper = new UsersMapper()->convertFromDb(...);
+
+$usersPager = new MappingPager(
+    WindowCountPager::create(
+        new Pagination(page: $page limit: $limit),
+        $query,
+    ),
+    $userMapper,
+);
+
+// Iterating over the results:
+$totalResults = $usersPager->totalResults();
+$totalPages = $usersPager->totalPages();
+$users = [...$usersPager];
+```
+
 # Building queries
 
 This package contains a set of tools that helps you build queries based on partial SQL Expressions.

@@ -53,4 +53,27 @@ final class UsersTable extends Table
 
         return $table;
     }
+
+    /**
+     * @param non-empty-string|null $fromAlias
+     * @param non-empty-string|null $asAlias
+     *
+     * @return JoinInfo
+     */
+    public static function joinOntoPosts(?string $fromAlias = null, ?string $asAlias = null): array
+    {
+        $from = $fromAlias ?? self::name();
+        $as = $asAlias ?? PostsTable::name();
+
+        return [
+            'fromAlias' => $from,
+            'join' => PostsTable::name(),
+            'alias' => $as,
+            'condition' => sprintf(
+                '%s = %s',
+                PostsTableColumns::UserId->onTable($from)->use(),
+                UsersTableColumns::Id->onTable($as)->use(),
+            ),
+        ];
+    }
 }

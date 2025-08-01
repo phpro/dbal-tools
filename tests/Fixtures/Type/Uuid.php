@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PhproTest\DbalTools\Fixtures\Type;
 
+use Ramsey\Uuid\Uuid as RamseyUuid;
+
 final readonly class Uuid
 {
     public function __construct(
@@ -14,6 +16,11 @@ final readonly class Uuid
     public static function fromString(string $uuid): self
     {
         return new self($uuid);
+    }
+
+    public static function generate(): self
+    {
+        return new self(RamseyUuid::uuid4()->toString());
     }
 
     public function __toString(): string
