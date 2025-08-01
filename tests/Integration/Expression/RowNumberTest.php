@@ -7,6 +7,7 @@ namespace PhproTest\DbalTools\Integration\Expression;
 use Phpro\DbalTools\Column\Column;
 use Phpro\DbalTools\Expression\Alias;
 use Phpro\DbalTools\Expression\OrderBy;
+use Phpro\DbalTools\Expression\Over;
 use Phpro\DbalTools\Expression\RowNumber;
 use Phpro\DbalTools\Test\DbalReaderTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -52,8 +53,8 @@ final class RowNumberTest extends DbalReaderTestCase
         $qb = $this->connection()->createQueryBuilder();
         $qb->select(
             'foo.id',
-            new Alias(RowNumber::over(
-                new OrderBy(OrderBy::field(new Column('id', 'foo'), OrderBy::DESC))
+            new Alias(new RowNumber(
+                Over::orderBy(new OrderBy(OrderBy::field(new Column('id', 'foo'), OrderBy::DESC)))
             ), 'row')->toSQL(),
         )->from(
             '(VALUES (1), (2), (3))',
