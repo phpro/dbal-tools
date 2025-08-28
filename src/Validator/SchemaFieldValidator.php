@@ -33,7 +33,7 @@ final class SchemaFieldValidator extends ConstraintValidator
         $column = $table->getColumn(string()->coerce($constraint->column->value));
         $length = $column->getLength();
 
-        if (null !== $length && mb_strlen(string()->coerce($value)) > $length) {
+        if (null !== $length && mb_strlen(string()->coerce($value ?? '')) > $length) {
             $this->context->buildViolation(
                 new TranslatableMessage('The maximum number of allowed characters is {{ maxLength }}.', [],
                     'validators')
