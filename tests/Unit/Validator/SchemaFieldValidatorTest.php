@@ -70,6 +70,22 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
     }
 
     #[Test]
+    public function it_adds_no_violations_when_value_is_null(): void
+    {
+        $constraint = new SchemaFieldConstraint([
+            'table' => UsersTable::class,
+            'column' => UsersTableColumns::FirstName,
+        ]);
+
+        $this->validator->validate(
+            null,
+            $constraint
+        );
+        $violationList = $this->context->getViolations();
+        $this->assertSame(0, $violationList->count());
+    }
+
+    #[Test]
     public function it_adds_a_violation_when_table_is_not_found(): void
     {
         $constraint = new SchemaFieldConstraint([
