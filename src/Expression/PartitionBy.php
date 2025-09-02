@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phpro\DbalTools\Expression;
 
-final readonly class RowNumber implements Expression
+final readonly class PartitionBy implements Expression
 {
     /**
      * @no-named-arguments
      */
     public function __construct(
-        private ?Over $over = null,
+        private Expression $partitionByExpression,
     ) {
     }
 
@@ -19,9 +19,6 @@ final readonly class RowNumber implements Expression
      */
     public function toSQL(): string
     {
-        return Over::aggregation(
-            new SqlExpression('ROW_NUMBER()'),
-            $this->over ?? Over::fullWindow(),
-        )->toSQL();
+        return sprintf('PARTITION BY %s', $this->partitionByExpression->toSQL());
     }
 }
