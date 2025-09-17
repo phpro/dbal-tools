@@ -22,11 +22,16 @@ final readonly class SqlExpression implements Expression
     }
 
     /**
-     * @param non-empty-string      $reference
-     * @param non-empty-string|null $alias
+     * @param non-empty-string|Expression $reference
+     * @param non-empty-string|null       $alias
      */
-    public static function tableReference(string $reference, ?string $alias = null): Expression
+    public static function tableReference(Expression|string $reference, ?string $alias = null): Expression
     {
+        $reference = match (true) {
+            $reference instanceof Expression => $reference->toSQL(),
+            default => $reference,
+        };
+
         return null !== $alias ? new Alias(new self($reference), $alias) : new self($reference);
     }
 
@@ -45,8 +50,13 @@ final readonly class SqlExpression implements Expression
         return new self('FALSE');
     }
 
-    public static function parenthesized(string $raw): self
+    public static function parenthesized(Expression|string $expression): self
     {
+        $raw = match (true) {
+            $expression instanceof Expression => $expression->toSQL(),
+            default => $expression,
+        };
+
         return new self('('.$raw.')');
     }
 
