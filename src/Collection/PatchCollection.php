@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phpro\DbalTools\Collection;
 
+use function Psl\Dict\reindex;
 use function Psl\Iter\contains;
+use function Psl\Vec\keys;
 use function Psl\Vec\map;
 
 final readonly class PatchCollection
@@ -14,14 +16,14 @@ final readonly class PatchCollection
      * It will know to insert, update or delete each object based on the provided new and old list.
      *
      * @template T
-     * @template I
+     * @template I of string
      *
-     * @param iterable<T>       $newCollection
-     * @param iterable<T>       $previousCollection
-     * @param \Closure(T): I    $idProvider
-     * @param \Closure(T): void $insert
-     * @param \Closure(T): void $update
-     * @param \Closure(T): void $delete
+     * @param iterable<T>          $newCollection
+     * @param iterable<T>          $previousCollection
+     * @param \Closure(T): I       $idProvider
+     * @param \Closure(T): void    $insert
+     * @param \Closure(T, T): void $update
+     * @param \Closure(T): void    $delete
      */
     public function patch(
         iterable $newCollection,
@@ -31,7 +33,8 @@ final readonly class PatchCollection
         \Closure $update,
         \Closure $delete,
     ): void {
-        $previousIds = map($previousCollection, $idProvider);
+        $previousLookup = reindex($previousCollection, $idProvider);
+        $previousIds = keys($previousLookup);
         $newIds = map($newCollection, $idProvider);
         $toDelete = array_diff($previousIds, $newIds);
         $toInsert = array_diff($newIds, $previousIds);
@@ -41,7 +44,7 @@ final readonly class PatchCollection
             $recordId = $idProvider($record);
             match (true) {
                 contains($toInsert, $recordId) => $insert($record),
-                contains($toUpdate, $recordId) => $update($record),
+                contains($toUpdate, $recordId) => $update($record, $previousLookup[$recordId]),
             };
         }
 

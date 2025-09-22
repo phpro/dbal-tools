@@ -38,7 +38,7 @@ final class PatchCollectionTest extends TestCase
             $newList,
             static fn (array $item): int => $item['id'],
             static fn (array $item) => $ref->value['create'][] = $item,
-            static fn (array $item) => $ref->value['update'][] = $item,
+            static fn (array $item, array $previous) => $ref->value['update'][] = [...$item, 'previous' => $previous],
             static fn (array $item) => $ref->value['delete'][] = $item,
         );
 
@@ -47,8 +47,8 @@ final class PatchCollectionTest extends TestCase
         ], $ref->value['create']);
 
         self::assertEquals([
-            ['id' => 1, 'name' => 'AUpdated'],
-            ['id' => 2, 'name' => 'B'],
+            ['id' => 1, 'name' => 'AUpdated', 'previous' => ['id' => 1, 'name' => 'A']],
+            ['id' => 2, 'name' => 'B', 'previous' => ['id' => 2, 'name' => 'B']],
         ], $ref->value['update']);
 
         self::assertEquals([
