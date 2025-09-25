@@ -37,6 +37,7 @@ final class JsonbBuildObjectTest extends DbalReaderTestCase
             JsonbBuildObject::nullable(SqlExpression::true(), [
                 'a' => new SqlExpression('1'),
             ])->toSQL(),
+            JsonbBuildObject::empty()->toSQL(),
         );
 
         $actualResults = $qb->fetchNumeric();
@@ -47,5 +48,6 @@ final class JsonbBuildObjectTest extends DbalReaderTestCase
         self::assertJsonStringEqualsJsonString($actualResults[0], encode(['a' => 1, 'b' => '1']));
         self::assertNull($actualResults[1]);
         self::assertJsonStringEqualsJsonString($actualResults[2], encode(['a' => 1]));
+        self::assertJsonStringEqualsJsonString($actualResults[3], encode((object) []));
     }
 }
