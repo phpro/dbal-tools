@@ -9,15 +9,20 @@ use function Psl\Iter\reduce_with_keys;
 final readonly class JsonbBuildObject implements Expression
 {
     /**
-     * @param non-empty-array<non-empty-string, Expression> $shape
+     * @param array<non-empty-string, Expression> $shape
      */
     public function __construct(
-        private iterable $shape,
+        private array $shape,
     ) {
     }
 
+    public static function empty(): self
+    {
+        return new self([]);
+    }
+
     /**
-     * @param non-empty-array<non-empty-string, Expression> $shape
+     * @param array<non-empty-string, Expression> $shape
      */
     public static function nullable(Expression $nullableColumn, iterable $shape): Expression
     {
@@ -36,21 +41,23 @@ final readonly class JsonbBuildObject implements Expression
     {
         return sprintf(
             'jsonb_build_object(%s)',
-            new Expressions(...reduce_with_keys(
-                $this->shape,
-                /**
-                 * @param list<Expression> $carry
-                 * @param non-empty-string $key
-                 *
-                 * @return list<Expression>
-                 */
-                static fn (array $carry, string $key, Expression $expression): array => [
-                    ...$carry,
-                    new LiteralString($key),
-                    $expression,
-                ],
-                []
-            ))->join(', ')->toSQL()
+            count($this->shape)
+                ? new Expressions(...reduce_with_keys(
+                    $this->shape,
+                    /**
+                     * @param list<Expression> $carry
+                     * @param non-empty-string $key
+                     *
+                     * @return list<Expression>
+                     */
+                    static fn (array $carry, string $key, Expression $expression): array => [
+                        ...$carry,
+                        new LiteralString($key),
+                        $expression,
+                    ],
+                    []
+                ))->join(', ')->toSQL()
+                : '',
         );
     }
 }
