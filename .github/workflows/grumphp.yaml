@@ -41,7 +41,7 @@ jobs:
                   key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
                   restore-keys: ${{ runner.os }}-composer-
             - name: Install dependencies PHP
-              run: composer update --prefer-dist --no-progress --ignore-platform-req=php+ ${{ matrix.composer-options }} ${{ matrix.composer-options == '--prefer-lowest' && '--no-audit' || '' }}
+              run: composer update --prefer-dist --no-progress --ignore-platform-req=php+ ${{ matrix.composer-options }}
             - name: Start containers
               run: docker compose -f "docker-compose.yml" up -d --build --wait ${{ matrix.database-platforms }}
             - name: Run the tests
