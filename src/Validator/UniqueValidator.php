@@ -7,10 +7,11 @@ namespace Phpro\DbalTools\Validator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
 use Phpro\DbalTools\Column\TableColumnsInterface;
-use Phpro\DbalTools\Expression\CaseInsensitiveComparison;
+use Phpro\DbalTools\Expression\Cast;
 use Phpro\DbalTools\Expression\Comparison;
 use Phpro\DbalTools\Expression\Composite;
 use Phpro\DbalTools\Expression\Factory\NamedParameter;
+use Phpro\DbalTools\Expression\Lower;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Schema\Table;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -70,15 +71,10 @@ final class UniqueValidator extends ConstraintValidator
                 Composite::and(
                     ...map_with_key(
                         $columns,
-                        fn (string $property, TableColumnsInterface $column): Comparison|CaseInsensitiveComparison => $constraint->caseInsensitive
-                            ? CaseInsensitiveComparison::equal(
-                                $column->onTable($tableName),
-                                NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
-                            )
-                            : Comparison::equal(
-                                $column->onTable($tableName),
-                                NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
-                            )
+                        fn (string $property, TableColumnsInterface $column): Comparison => Comparison::equal(
+                            $constraint->caseInsensitive ? new Lower(Cast::varchar($column->onTable($tableName))) : $column->onTable($tableName),
+                            $constraint->caseInsensitive ? new Lower(Cast::varChar(NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property)))) : NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
+                        )
                     )
                 )->toSQL()
             );
