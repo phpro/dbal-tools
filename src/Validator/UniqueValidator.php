@@ -10,6 +10,7 @@ use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Expression\Cast;
 use Phpro\DbalTools\Expression\Comparison;
 use Phpro\DbalTools\Expression\Composite;
+use Phpro\DbalTools\Expression\Expression;
 use Phpro\DbalTools\Expression\Factory\NamedParameter;
 use Phpro\DbalTools\Expression\Lower;
 use Phpro\DbalTools\Expression\SqlExpression;
@@ -57,6 +58,11 @@ final class UniqueValidator extends ConstraintValidator
             return;
         }
 
+        $comparable = static fn (Expression $expression): Expression => match (true) {
+            $constraint->caseInsensitive => new Lower(Cast::varchar($expression)),
+            default => $expression,
+        };
+
         $qb = $this->connection->createQueryBuilder();
         $qb
             ->select(
@@ -72,8 +78,8 @@ final class UniqueValidator extends ConstraintValidator
                     ...map_with_key(
                         $columns,
                         fn (string $property, TableColumnsInterface $column): Comparison => Comparison::equal(
-                            $constraint->caseInsensitive ? new Lower(Cast::varchar($column->onTable($tableName))) : $column->onTable($tableName),
-                            $constraint->caseInsensitive ? new Lower(Cast::varChar(NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property)))) : NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
+                            $comparable($column->onTable($tableName)),
+                            $comparable(NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property)))
                         )
                     )
                 )->toSQL()
