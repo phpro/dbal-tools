@@ -7,6 +7,7 @@ namespace Phpro\DbalTools\Validator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
 use Phpro\DbalTools\Column\TableColumnsInterface;
+use Phpro\DbalTools\Expression\CaseInsensitiveComparison;
 use Phpro\DbalTools\Expression\Comparison;
 use Phpro\DbalTools\Expression\Composite;
 use Phpro\DbalTools\Expression\Factory\NamedParameter;
@@ -69,10 +70,15 @@ final class UniqueValidator extends ConstraintValidator
                 Composite::and(
                     ...map_with_key(
                         $columns,
-                        fn (string $property, TableColumnsInterface $column): Comparison => Comparison::equal(
-                            $column->onTable($tableName),
-                            NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
-                        )
+                        fn (string $property, TableColumnsInterface $column): Comparison|CaseInsensitiveComparison => $constraint->caseInsensitive
+                            ? CaseInsensitiveComparison::equal(
+                                $column->onTable($tableName),
+                                NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
+                            )
+                            : Comparison::equal(
+                                $column->onTable($tableName),
+                                NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
+                            )
                     )
                 )->toSQL()
             );

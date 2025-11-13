@@ -246,6 +246,7 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
             'identifiers' => ['id' => UniqueValidatorTableColumns::Id],
             'path' => 'property',
             'message' => 'custom error',
+            'caseInsensitive' => true,
         ]);
 
         self::assertSame(UniqueValidatorTable::class, $constraint->table);
@@ -253,8 +254,86 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
         self::assertSame(['id' => UniqueValidatorTableColumns::Id], $constraint->identifiers);
         self::assertSame('property', $constraint->path);
         self::assertSame('custom error', $constraint->message);
+        self::assertTrue($constraint->caseInsensitive);
         self::assertSame(UniqueValidator::class, $constraint->validatedBy());
         self::assertSame([Constraint::CLASS_CONSTRAINT], $constraint->getTargets());
+    }
+
+    #[Test]
+    public function it_adds_a_violation_when_single_column_is_not_unique_case_insensitive(): void
+    {
+        $constraint = new UniqueConstraint([
+            'table' => UniqueValidatorTable::class,
+            'columns' => [
+                'email' => UniqueValidatorTableColumns::Email,
+            ],
+            'caseInsensitive' => true,
+        ]);
+
+        $this->validator->validate((object) ['email' => 'JOSBOS@DISPOSTABLE.COM'], $constraint);
+
+        $violationList = $this->context->getViolations();
+        self::assertSame(1, $violationList->count());
+        self::assertSame(
+            'The provided payload at properties "{{ properties }}" does not result in a unique record.',
+            $violationList->get(0)->getMessage()
+        );
+    }
+
+    #[Test]
+    public function it_adds_no_violation_when_single_column_is_unique_case_insensitive(): void
+    {
+        $constraint = new UniqueConstraint([
+            'table' => UniqueValidatorTable::class,
+            'columns' => [
+                'email' => UniqueValidatorTableColumns::Email,
+            ],
+            'caseInsensitive' => true,
+        ]);
+
+        $this->validator->validate((object) ['email' => 'UNIQUE@EXAMPLE.COM'], $constraint);
+
+        $violationList = $this->context->getViolations();
+        self::assertSame(0, $violationList->count());
+    }
+
+    #[Test]
+    public function it_adds_a_violation_when_multi_column_is_not_unique_case_insensitive(): void
+    {
+        $constraint = new UniqueConstraint([
+            'table' => UniqueValidatorTable::class,
+            'columns' => [
+                'firstName' => UniqueValidatorTableColumns::FirstName,
+                'lastName' => UniqueValidatorTableColumns::LastName,
+            ],
+            'caseInsensitive' => true,
+        ]);
+
+        $this->validator->validate((object) ['firstName' => 'JOS', 'lastName' => 'BOS'], $constraint);
+
+        $violationList = $this->context->getViolations();
+        self::assertSame(1, $violationList->count());
+        self::assertSame(
+            'The provided payload at properties "{{ properties }}" does not result in a unique record.',
+            $violationList->get(0)->getMessage()
+        );
+    }
+
+    #[Test]
+    public function it_adds_no_violation_when_case_sensitive_and_different_case(): void
+    {
+        $constraint = new UniqueConstraint([
+            'table' => UniqueValidatorTable::class,
+            'columns' => [
+                'email' => UniqueValidatorTableColumns::Email,
+            ],
+            'caseInsensitive' => false,
+        ]);
+
+        $this->validator->validate((object) ['email' => 'JOSBOS@DISPOSTABLE.COM'], $constraint);
+
+        $violationList = $this->context->getViolations();
+        self::assertSame(0, $violationList->count());
     }
 }
 

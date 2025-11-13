@@ -33,6 +33,12 @@ final class UniqueConstraint extends Constraint
     public array $identifiers = [];
 
     /**
+     * When set to true, the comparison will be case-insensitive.
+     * This uses LOWER() function on both sides of the comparison.
+     */
+    public bool $caseInsensitive = false;
+
+    /**
      * Can be used to specify a path on which you want to display the error message.
      * If not set, it will be displayed at root object level.
      */
