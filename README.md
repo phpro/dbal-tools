@@ -593,19 +593,22 @@ Example configuration:
 
 ```yaml
 App\Domain\Model\User:
-  properties:
-    userName:
-      - Phpro\DbalTools\Validator\UniqueConstraint:
-            columns:
-              "username": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Username
-          
-            # You can specify an alternate message and path name.
-            message: "A user already exists with this username."
-            path: "data.username"
-            
-            # Can be used for updates to check if you are updating the existing record:
-            identifiers:
-              "id": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Id
+  constraints:
+    - Phpro\DbalTools\Validator\UniqueConstraint:
+        table: App\Infrastructure\Doctrine\Schema\User\UsersTable
+        columns:
+          "username": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Username
+        
+        # You can specify an alternate message and path name.
+        message: "A user already exists with this username."
+        path: "data.username"
+        
+        # Can be used for updates to check if you are updating the existing record:
+        identifiers:
+          "id": !php/enum App\Infrastructure\Doctrine\Schema\User\UsersTableColumns::Id
+        
+        # Enable case-insensitive comparison:
+        caseInsensitive: false
 ```
 
 # Pagination

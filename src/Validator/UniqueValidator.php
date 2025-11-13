@@ -7,9 +7,12 @@ namespace Phpro\DbalTools\Validator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Type;
 use Phpro\DbalTools\Column\TableColumnsInterface;
+use Phpro\DbalTools\Expression\Cast;
 use Phpro\DbalTools\Expression\Comparison;
 use Phpro\DbalTools\Expression\Composite;
+use Phpro\DbalTools\Expression\Expression;
 use Phpro\DbalTools\Expression\Factory\NamedParameter;
+use Phpro\DbalTools\Expression\Lower;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Schema\Table;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -55,6 +58,11 @@ final class UniqueValidator extends ConstraintValidator
             return;
         }
 
+        $comparable = static fn (Expression $expression): Expression => match (true) {
+            $constraint->caseInsensitive => new Lower(Cast::varchar($expression)),
+            default => $expression,
+        };
+
         $qb = $this->connection->createQueryBuilder();
         $qb
             ->select(
@@ -70,8 +78,8 @@ final class UniqueValidator extends ConstraintValidator
                     ...map_with_key(
                         $columns,
                         fn (string $property, TableColumnsInterface $column): Comparison => Comparison::equal(
-                            $column->onTable($tableName),
-                            NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property))
+                            $comparable($column->onTable($tableName)),
+                            $comparable(NamedParameter::createForTableColumn($qb, $column, $this->accessor->getValue($value, $property)))
                         )
                     )
                 )->toSQL()
