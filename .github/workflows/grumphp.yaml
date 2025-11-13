@@ -42,6 +42,8 @@ jobs:
                   restore-keys: ${{ runner.os }}-composer-
             - name: Install dependencies PHP
               run: composer update --prefer-dist --no-progress --ignore-platform-req=php+ ${{ matrix.composer-options }}
+              env:
+                COMPOSER_NO_AUDIT: ${{ matrix.composer-options == '--prefer-lowest' && '1' || '0' }}
             - name: Start containers
               run: docker compose -f "docker-compose.yml" up -d --build --wait ${{ matrix.database-platforms }}
             - name: Run the tests

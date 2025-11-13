@@ -423,7 +423,6 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
             'caseInsensitive' => true,
         ]);
 
-        // The database has 'Jos' (lowercase 'os') with age 30, testing with 'JOS' (uppercase)
         $this->validator->validate((object) ['firstName' => 'JOS', 'age' => 30], $constraint);
 
         $violationList = $this->context->getViolations();
@@ -446,7 +445,6 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
             'caseInsensitive' => true,
         ]);
 
-        // Different age makes it unique even though 'JOS' matches 'Jos' case-insensitively
         $this->validator->validate((object) ['firstName' => 'JOS', 'age' => 25], $constraint);
 
         $violationList = $this->context->getViolations();
