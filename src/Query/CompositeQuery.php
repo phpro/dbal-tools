@@ -6,6 +6,7 @@ namespace Phpro\DbalTools\Query;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\UnionType;
 use Doctrine\DBAL\Result;
 use Phpro\DbalTools\Column\Column;
 use Phpro\DbalTools\Expression\Comparison;
@@ -19,23 +20,56 @@ use function Psl\Vec\map_with_key;
 
 /**
  * @psalm-import-type JoinInfo from Table
+ *
+ * @psalm-type With = array{0: QueryBuilder, 1 ?: CompositeSubQueryOptions|null}
  */
 final class CompositeQuery implements Expression
 {
+    private Connection $connection;
+    private QueryBuilder $query;
+
     /**
-     * @param QueryBuilder                $query
-     * @param array<string, QueryBuilder> $with
+     * @var array<non-empty-string, With>
+     */
+    private array $with;
+
+    private CompositeQueryOptions $options;
+
+    /**
+     * @param QueryBuilder                               $query
+     * @param array<non-empty-string, QueryBuilder|With> $with
      */
     public function __construct(
-        private Connection $connection,
-        private QueryBuilder $query,
-        private array $with,
+        Connection $connection,
+        QueryBuilder $query,
+        array $with,
+        ?CompositeQueryOptions $options = null,
     ) {
+        $this->connection = $connection;
+        $this->query = $query;
+        $this->with = map(
+            $with,
+            /**
+             * @param QueryBuilder|With $query
+             *
+             * @return With
+             */
+            fn (QueryBuilder|array $query): array => match (true) {
+                is_array($query) => $query,
+                default => [$query],
+            }
+        );
+        $this->options = $options ?? CompositeQueryOptions::default();
     }
 
     public static function from(Connection $connection): self
     {
-        return new self($connection, $connection->createQueryBuilder(), []);
+        return new self(
+            $connection,
+            $connection->createQueryBuilder(),
+            [],
+            CompositeQueryOptions::default(),
+        );
     }
 
     public function mainQuery(): QueryBuilder
@@ -43,15 +77,20 @@ final class CompositeQuery implements Expression
         return $this->query;
     }
 
-    public function moveMainQueryToSubQuery(string $name): self
+    /**
+     * @param non-empty-string              $name
+     * @param CompositeSubQueryOptions|null $subQueryOptions
+     */
+    public function moveMainQueryToSubQuery(string $name, ?CompositeSubQueryOptions $subQueryOptions = null): self
     {
         return new self(
             $this->connection,
             $this->connection->createQueryBuilder(),
-            [
-                ...$this->with,
-                $name => $this->mainQuery(),
-            ]
+            merge(
+                $this->with,
+                [$name => [$this->mainQuery(), $subQueryOptions]]
+            ),
+            $this->options,
         );
     }
 
@@ -64,7 +103,9 @@ final class CompositeQuery implements Expression
     {
         invariant(array_key_exists($name, $this->with), sprintf('Subquery "%s" does not exist.', $name));
 
-        return $this->with[$name];
+        $query = $this->with[$name];
+
+        return $query[0];
     }
 
     /**
@@ -78,11 +119,11 @@ final class CompositeQuery implements Expression
     /**
      * @param non-empty-string $name
      */
-    public function createSubQuery(string $name): QueryBuilder
+    public function createSubQuery(string $name, ?CompositeSubQueryOptions $subQueryOptions = null): QueryBuilder
     {
         $query = $this->connection->createQueryBuilder();
 
-        $this->addSubQuery($name, $query);
+        $this->addSubQuery($name, $query, $subQueryOptions);
 
         return $query;
     }
@@ -90,11 +131,34 @@ final class CompositeQuery implements Expression
     /**
      * @param non-empty-string $name
      */
-    public function addSubQuery(string $name, QueryBuilder $queryBuilder): self
+    public function addSubQuery(string $name, QueryBuilder $queryBuilder, ?CompositeSubQueryOptions $subQueryOptions = null): self
     {
-        $this->with[$name] = $queryBuilder;
+        $this->with[$name] = [$queryBuilder, $subQueryOptions];
 
         return $this;
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return array{0: QueryBuilder, 1: QueryBuilder} - Returns a tuple of (BaseQuery, RecursiveQuery)
+     */
+    public function createRecursiveSubQuery(
+        string $name,
+        UnionType $type = UnionType::ALL,
+    ): array {
+        $recursiveQuery = $this->connection->createQueryBuilder();
+        $recursiveQuery
+            ->union($basePart = $this->connection->createQueryBuilder())
+            ->addUnion($recursivePart = $this->connection->createQueryBuilder(), $type);
+
+        $this->options = new CompositeQueryOptions(recursive: true);
+        $this->addSubQuery(
+            $name,
+            $recursiveQuery,
+        );
+
+        return [$basePart, $recursivePart];
     }
 
     /**
@@ -169,7 +233,7 @@ final class CompositeQuery implements Expression
     public function execute(): Result
     {
         $params = $paramTypes = [];
-        foreach ($this->with as $query) {
+        foreach ($this->with as [$query]) {
             $params = merge($params, $query->getParameters());
             $paramTypes = merge($paramTypes, $query->getParameterTypes());
         }
@@ -192,11 +256,21 @@ final class CompositeQuery implements Expression
         }
 
         return sprintf(
-            'WITH %s %s',
+            'WITH%s %s %s',
+            $this->options->recursive ? ' RECURSIVE' : '',
             Str\join(
                 map_with_key(
                     $this->with,
-                    static fn (string $alias, QueryBuilder $query): string => $alias.' AS ('.$query->getSQL().')'
+                    static fn (string $alias, array $query): string => sprintf(
+                        '%s AS %s(%s)',
+                        $alias,
+                        match (true) {
+                            $query[1]?->materialized ?? null === true => 'MATERIALIZED ',
+                            $query[1]?->materialized ?? null === false => 'NOT MATERIALIZED ',
+                            default => '',
+                        },
+                        $query[0]->getSQL()
+                    )
                 ),
                 ', '
             ),
@@ -225,7 +299,10 @@ final class CompositeQuery implements Expression
         $this->query = clone $this->query;
         $this->with = map(
             $this->with,
-            fn (QueryBuilder $query): QueryBuilder => clone $query
+            fn (array $query): array => [
+                clone $query[0],
+                $query[1] ?? null,
+            ],
         );
     }
 }
