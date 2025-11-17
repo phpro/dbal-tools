@@ -6,6 +6,7 @@ namespace PhproTest\DbalTools\Integration\Query;
 
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\UnionType;
 use Doctrine\DBAL\Schema\Column as DoctrineColumn;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use Doctrine\DBAL\Types\Type;
@@ -20,6 +21,7 @@ use Phpro\DbalTools\Expression\IsNotNull;
 use Phpro\DbalTools\Expression\IsNull;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Query\CompositeQuery;
+use Phpro\DbalTools\Query\CompositeSubQueryOptions;
 use Phpro\DbalTools\Schema\Table;
 use Phpro\DbalTools\Test\DbalReaderTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -49,9 +51,60 @@ final class CompositeQueryTest extends DbalReaderTestCase
             ->select($compositeQuery->cteColumn('linked', 'foo')->select())
             ->from('linked');
 
-        $compositeQuery->createSubQuery('linked')
+        $compositeQuery->createSubQuery('linked', CompositeSubQueryOptions::default())
             ->select('memory.foo')
             ->from('(VALUES (1), (2), (3))', 'memory (foo)');
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['foo' => 1],
+            ['foo' => 2],
+            ['foo' => 3],
+        ], $result);
+    }
+
+    #[Test]
+    public function it_can_execute_composed_queries_from_constructor_with_query_builders(): void
+    {
+        $compositeQuery = new CompositeQuery(
+            self::connection(),
+            self::connection()->createQueryBuilder()
+                ->select('linked.foo')
+                ->from('linked'),
+            [
+                'linked' => self::connection()->createQueryBuilder()
+                    ->select('memory.foo')
+                    ->from('(VALUES (1), (2), (3))', 'memory (foo)'),
+            ]
+        );
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['foo' => 1],
+            ['foo' => 2],
+            ['foo' => 3],
+        ], $result);
+    }
+
+    #[Test]
+    public function it_can_execute_composed_queries_from_constructor_with_query_builders_and_settings(): void
+    {
+        $compositeQuery = new CompositeQuery(
+            self::connection(),
+            self::connection()->createQueryBuilder()
+                ->select('linked.foo')
+                ->from('linked'),
+            [
+                'linked' => [
+                    self::connection()->createQueryBuilder()
+                        ->select('memory.foo')
+                        ->from('(VALUES (1), (2), (3))', 'memory (foo)'),
+                    CompositeSubQueryOptions::default(),
+                ],
+            ]
+        );
 
         $result = $compositeQuery->execute()->fetchAllAssociative();
 
@@ -183,7 +236,7 @@ final class CompositeQueryTest extends DbalReaderTestCase
             ->select('memory.foo')
             ->from('(VALUES (1), (2))', 'memory (foo)');
 
-        $newCompositeQuery = $compositeQuery->moveMainQueryToSubQuery('subquery1');
+        $newCompositeQuery = $compositeQuery->moveMainQueryToSubQuery('subquery1', CompositeSubQueryOptions::default());
         $newCompositeQuery->mainQuery()->select('memory.foo')
             ->from('(VALUES (1), (2), (3))', 'memory (foo)');
 
@@ -288,7 +341,7 @@ final class CompositeQueryTest extends DbalReaderTestCase
                     )
                 ))->toSQL()
             );
-        $compositeQuery->addSubQuery('subquery', $subQuery);
+        $compositeQuery->addSubQuery('subquery', $subQuery, CompositeSubQueryOptions::default());
 
         $mainQuery
             ->select(CompositeTableColumns::Id->select())
@@ -302,6 +355,129 @@ final class CompositeQueryTest extends DbalReaderTestCase
         self::assertSame([
             ['id' => 1],
         ], $compositeQuery->execute()->fetchAllAssociative());
+    }
+
+    #[Test]
+    public function it_can_create_and_execute_recursive_cte_with_union_all(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+
+        [$basePart, $recursivePart] = $compositeQuery->createRecursiveSubQuery('numbers');
+        $basePart
+            ->select('1 AS n, 0 AS depth');
+
+        $recursivePart
+            ->select('n AS n, depth + 1 AS depth')
+            ->from('numbers')
+            ->where('depth < 2');
+
+        $compositeQuery->mainQuery()
+            ->select('n')
+            ->from('numbers');
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['n' => 1],
+            ['n' => 1],
+            ['n' => 1],
+        ], $result);
+    }
+
+    #[Test]
+    public function it_can_create_and_execute_recursive_cte_with_union_distinct(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+
+        [$basePart, $recursivePart] = $compositeQuery->createRecursiveSubQuery('numbers', UnionType::DISTINCT);
+        $basePart
+            ->select('1 AS n');
+
+        $recursivePart
+            ->select('n')
+            ->from('numbers');
+
+        $compositeQuery->mainQuery()
+            ->select('n')
+            ->from('numbers');
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['n' => 1],
+        ], $result);
+    }
+
+    #[Test]
+    public function it_can_combine_regular_and_recursive_ctes(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+
+        $compositeQuery->createSubQuery('regular')
+            ->select('10 AS multiplier');
+
+        [$basePart, $recursivePart] = $compositeQuery->createRecursiveSubQuery('numbers');
+        $basePart->select('1 AS n');
+        $recursivePart
+            ->select('n + 1 AS n')
+            ->from('numbers')
+            ->where('n < 3');
+
+        // Main query combines both with explicit join
+        $compositeQuery->mainQuery()
+            ->select('numbers.n * regular.multiplier AS result')
+            ->from('numbers')
+            ->innerJoin('numbers', 'regular', 'regular', '1=1');
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['result' => 10],
+            ['result' => 20],
+            ['result' => 30],
+        ], $result);
+    }
+
+    #[Test]
+    public function it_can_execute_composed_materialized_queries(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+        $compositeQuery->mainQuery()
+            ->select($compositeQuery->cteColumn('linked', 'foo')->select())
+            ->from('linked');
+
+        $compositeQuery->createSubQuery('linked', new CompositeSubQueryOptions(materialized: true))
+            ->select('memory.foo')
+            ->from('(VALUES (1), (2), (3))', 'memory (foo)');
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['foo' => 1],
+            ['foo' => 2],
+            ['foo' => 3],
+        ], $result);
+    }
+
+    #[Test]
+    public function it_can_execute_composed_non_materialized_queries(): void
+    {
+        $compositeQuery = CompositeQuery::from(self::connection());
+        $compositeQuery->mainQuery()
+            ->select($compositeQuery->cteColumn('linked', 'foo')->select())
+            ->from('linked');
+
+        $compositeQuery->createSubQuery('linked', new CompositeSubQueryOptions(materialized: false))
+            ->select('memory.foo')
+            ->from('(VALUES (1), (2), (3))', 'memory (foo)');
+
+        $result = $compositeQuery->execute()->fetchAllAssociative();
+
+        self::assertSame([
+            ['foo' => 1],
+            ['foo' => 2],
+            ['foo' => 3],
+        ], $result);
     }
 
     #[Test]
