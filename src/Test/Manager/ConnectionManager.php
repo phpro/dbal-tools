@@ -16,6 +16,7 @@ final class ConnectionManager
 {
     /**
      * @psalm-suppress InvalidArgument - Unable to infer createConnection parameters.
+     * @psalm-suppress InternalClass
      */
     public static function getConnection(): Connection
     {
