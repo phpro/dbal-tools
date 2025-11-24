@@ -12,6 +12,10 @@ use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use function Psl\Type\string;
 
+/**
+ * @psalm-suppress InternalClass - ConnectionFactory us marked as internal nowadays - we'll take the risk.
+ * @psalm-suppress UnusedPsalmSuppress - ConnectionFactory is not marked as internal for all doctrine-bundle versions.
+ */
 final class ConnectionManager
 {
     /**
