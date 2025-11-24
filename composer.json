@@ -21,7 +21,7 @@
     ],
     "require": {
         "php": "~8.4.0 || ~8.5.0",
-        "azjezz/psl": "^3.2 || ~4.2.0",
+        "azjezz/psl": "^3.2 || ^4.0",
         "doctrine/dbal": "^4.2",
         "symfony/config": "^7.3",
         "symfony/console": "^7.3",
