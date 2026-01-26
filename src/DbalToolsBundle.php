@@ -14,11 +14,11 @@ final class DbalToolsBundle extends AbstractBundle
     {
         $configDir = __DIR__.'/../config';
 
-        $container->import($configDir.'/collection.xml');
-        $container->import($configDir.'/commands.xml');
-        $container->import($configDir.'/fixtures.xml');
-        $container->import($configDir.'/migrations.xml');
-        $container->import($configDir.'/schema.xml');
-        $container->import($configDir.'/validators.xml');
+        $container->import($configDir.'/collection.php');
+        $container->import($configDir.'/commands.php');
+        $container->import($configDir.'/fixtures.php');
+        $container->import($configDir.'/migrations.php');
+        $container->import($configDir.'/schema.php');
+        $container->import($configDir.'/validators.php');
     }
 }
