@@ -11,7 +11,6 @@ use Phpro\DbalTools\Expression\Factory\NamedParameter;
 use Phpro\DbalTools\Expression\In;
 use Phpro\DbalTools\Expression\JsonbAggStrict;
 use Phpro\DbalTools\Schema\Table;
-use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use function Psl\Json\typed;
@@ -69,9 +68,9 @@ final class TableKeyExistsValidator extends ConstraintValidator
         }
 
         if (!is_iterable($value)) {
-            $this->context->buildViolation(
-                new TranslatableMessage('The provided value could not be found.', [], 'validators')
-            )->addViolation();
+            $this->context->buildViolation('The provided value could not be found.')
+                ->setTranslationDomain('validators')
+                ->addViolation();
 
             return;
         }
@@ -82,9 +81,10 @@ final class TableKeyExistsValidator extends ConstraintValidator
             $results
         );
         foreach ($missing as $path => $_) {
-            $this->context->buildViolation(
-                new TranslatableMessage('The provided value could not be found.', [], 'validators')
-            )->atPath('['.(string) $path.']')->addViolation();
+            $this->context->buildViolation('The provided value could not be found.')
+                ->setTranslationDomain('validators')
+                ->atPath('['.(string) $path.']')
+                ->addViolation();
         }
     }
 }

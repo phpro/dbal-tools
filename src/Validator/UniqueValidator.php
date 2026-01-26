@@ -16,7 +16,6 @@ use Phpro\DbalTools\Expression\Lower;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Schema\Table;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use function Psl\Iter\reduce_with_keys;
@@ -50,9 +49,8 @@ final class UniqueValidator extends ConstraintValidator
 
         if (!count($columns)) {
             $this->context
-                ->buildViolation(
-                    new TranslatableMessage('At least one column must be specified for detecting uniqueness.', [], 'validators')
-                )
+                ->buildViolation('At least one column must be specified for detecting uniqueness.')
+                ->setTranslationDomain('validators')
                 ->addViolation();
 
             return;

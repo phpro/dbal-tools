@@ -8,14 +8,20 @@ use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Schema\Table;
 use Symfony\Component\Validator\Constraint;
 
-/**
- * @psalm-suppress MissingConstructor
- */
 final class SchemaFieldConstraint extends Constraint
 {
-    /** @var class-string<Table> */
-    public string $table;
-    public TableColumnsInterface $column;
+    /**
+     * @param class-string<Table> $table
+     * @param list<string>|null   $groups
+     */
+    public function __construct(
+        public string $table,
+        public TableColumnsInterface $column,
+        ?array $groups = null,
+        mixed $payload = null,
+    ) {
+        parent::__construct(null, $groups, $payload);
+    }
 
     public function validatedBy(): string
     {

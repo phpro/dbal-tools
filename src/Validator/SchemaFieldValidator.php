@@ -6,7 +6,6 @@ namespace Phpro\DbalTools\Validator;
 
 use Doctrine\DBAL\Schema\Schema;
 use Phpro\DbalTools\Schema\Table;
-use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use function Psl\Type\class_string;
@@ -34,11 +33,9 @@ final class SchemaFieldValidator extends ConstraintValidator
         $length = $column->getLength();
 
         if (null !== $length && mb_strlen(string()->coerce($value ?? '')) > $length) {
-            $this->context->buildViolation(
-                new TranslatableMessage('The maximum number of allowed characters is {{ maxLength }}.', [],
-                    'validators')
-            )
+            $this->context->buildViolation('The maximum number of allowed characters is {{ maxLength }}.')
                 ->setParameter('{{ maxLength }}', (string) $length)
+                ->setTranslationDomain('validators')
                 ->addViolation();
         }
     }

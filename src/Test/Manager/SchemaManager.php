@@ -6,6 +6,7 @@ namespace Phpro\DbalTools\Test\Manager;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\Name\OptionallyQualifiedName;
 use Doctrine\DBAL\Schema\Sequence as DoctrineSequence;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use Phpro\DbalTools\Schema\Sequence;
@@ -41,7 +42,10 @@ final readonly class SchemaManager
         }
 
         $schemaManager = $this->schemaManager;
-        $tableNames = $schemaManager->listTableNames();
+        $tableNames = map(
+            $schemaManager->introspectTableNames(),
+            static fn (OptionallyQualifiedName $name): string => $name->toString()
+        );
         /** @psalm-var class-string<Table> $schemaTable */
         foreach ($schemaTables as $schemaTable) {
             if (\in_array($schemaTable::name(), $tableNames, true)) {
@@ -55,7 +59,7 @@ final readonly class SchemaManager
     public function createDoctrineTable(DoctrineTable $table): void
     {
         $schemaManager = $this->schemaManager;
-        if (!$schemaManager->tableExists($table->getName())) {
+        if (!$schemaManager->tableExists($table->getObjectName()->toString())) {
             $schemaManager->createTable($table);
         }
     }
@@ -91,7 +95,7 @@ final readonly class SchemaManager
 
         $schemaManager = $this->schemaManager;
         $sequenceNames = map(
-            $schemaManager->listSequences(), fn (DoctrineSequence $sequence): string => $sequence->getName()
+            $schemaManager->introspectSequences(), fn (DoctrineSequence $sequence): string => $sequence->getObjectName()->toString()
         );
 
         /** @psalm-var class-string<Sequence> $schemaSequence */
@@ -106,14 +110,14 @@ final readonly class SchemaManager
 
     public function dropSequences(): void
     {
-        $sequences = $this->schemaManager->listSequences();
+        $sequences = $this->schemaManager->introspectSequences();
         if (!\count($sequences)) {
             return;
         }
 
         $this->connection->executeStatement(\array_reduce($sequences,
             static fn (string $sql, DoctrineSequence $sequence): string => $sql
-                ."DROP SEQUENCE IF EXISTS {$sequence->getName()} CASCADE;",
+                ."DROP SEQUENCE IF EXISTS {$sequence->getObjectName()->toString()} CASCADE;",
             ''
         ));
     }

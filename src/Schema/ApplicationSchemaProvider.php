@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phpro\DbalTools\Schema;
 
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaConfig;
 use Doctrine\DBAL\Schema\Sequence as DoctrineSequence;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
 use Doctrine\Migrations\Provider\SchemaProvider;
@@ -25,7 +26,10 @@ final readonly class ApplicationSchemaProvider implements SchemaProvider
 
     public function createSchema(): Schema
     {
-        return (new Schema(
+        $schemaConfig = new SchemaConfig();
+        $schemaConfig->setName('public');
+
+        return new Schema(
             map(
                 $this->tables,
                 static fn (Table $table): DoctrineTable => $table->createTable()
@@ -33,7 +37,8 @@ final readonly class ApplicationSchemaProvider implements SchemaProvider
             map(
                 $this->sequences,
                 static fn (Sequence $sequence): DoctrineSequence => $sequence->createSequence()
-            )
-        ))->createNamespace('public');
+            ),
+            $schemaConfig
+        );
     }
 }

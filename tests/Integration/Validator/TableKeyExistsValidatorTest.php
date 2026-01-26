@@ -59,10 +59,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $column = TableKeyExistsTableColumns::Id;
         $value = '9e128344-6e0a-4913-ba2d-3a7d5f5cb09b';
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate($value, $constraint);
 
@@ -78,10 +78,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $column = TableKeyExistsTableColumns::Id;
         $value = '2c8c206c-0031-4c85-b36d-a7d5be16c138';
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate($value, $constraint);
 
@@ -95,10 +95,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $table = TableKeyExistsTable::class;
         $column = TableKeyExistsTableColumns::Id;
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate([
             '3e5ae04e-64b7-4710-946e-05e48696c949',
@@ -120,10 +120,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $table = TableKeyExistsTable::class;
         $column = TableKeyExistsTableColumns::Id;
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate([], $constraint);
 
@@ -137,10 +137,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $table = TableKeyExistsTable::class;
         $column = TableKeyExistsTableColumns::Id;
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate(null, $constraint);
 
@@ -154,10 +154,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $table = TableKeyExistsTable::class;
         $column = TableKeyExistsTableColumns::Id;
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate([null, null], $constraint);
 
@@ -171,10 +171,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $table = TableKeyExistsTable::class;
         $column = TableKeyExistsTableColumns::Id;
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         $this->validator->validate([
             '0c667837-9edb-474b-beba-a6e0c608d6d2',
@@ -194,10 +194,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
         $column = TableKeyExistsTableColumns::Id;
         $value = '0c667837-9edb-474b-beba-a6e0c608d6d2';
 
-        $constraint = new TableKeyExistsConstraint([
-            'table' => $table,
-            'column' => $column,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: $table,
+            column: $column,
+        );
 
         self::expectException(AssertException::class);
         $this->validator->validate($value, $constraint);
@@ -206,10 +206,10 @@ final class TableKeyExistsValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_has_constraint_settings(): void
     {
-        $constraint = new TableKeyExistsConstraint([
-            'table' => TableKeyExistsTable::class,
-            'column' => TableKeyExistsTableColumns::Id,
-        ]);
+        $constraint = new TableKeyExistsConstraint(
+            table: TableKeyExistsTable::class,
+            column: TableKeyExistsTableColumns::Id,
+        );
 
         self::assertSame(TableKeyExistsTable::class, $constraint->table);
         self::assertSame(TableKeyExistsTableColumns::Id, $constraint->column);
