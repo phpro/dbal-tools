@@ -32,7 +32,7 @@ abstract class Table
         return pull(
             static::createTable()->getColumns(),
             static fn (DoctrineColumn $column): Type => $column->getType(),
-            static fn (DoctrineColumn $column): string => $column->getName()
+            static fn (DoctrineColumn $column): string => $column->getObjectName()->toString()
         );
     }
 
@@ -42,7 +42,7 @@ abstract class Table
     public static function columnType(string $column): Type
     {
         foreach (static::createTable()->getColumns() as $tableColumn) {
-            if ($tableColumn->getName() === $column) {
+            if ($tableColumn->getObjectName()->toString() === $column) {
                 return $tableColumn->getType();
             }
         }

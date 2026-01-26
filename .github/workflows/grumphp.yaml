@@ -22,7 +22,6 @@ jobs:
                   tools: 'composer:v2'
                   extensions: pcov, mbstring, posix
             - name: Set env vars for latest PHP version
-              if: matrix.php-versions == '8.5'
               run: |
                 export COMPOSER_IGNORE_PLATFORM_REQ=php+
                 export BOX_REQUIREMENT_CHECKER=0
@@ -46,6 +45,7 @@ jobs:
               run: docker compose -f "docker-compose.yml" up -d --build --wait ${{ matrix.database-platforms }}
             - name: Run the tests
               run: php vendor/bin/grumphp run --no-interaction
-              continue-on-error: ${{ matrix.php-versions == '8.5' }}
+              continue-on-error: ${{ matrix.php-versions == '8.5' && matrix.composer-options == '--prefer-lowest' }}
               env:
                 PHP_CS_FIXER_IGNORE_ENV: 1
+                BOX_REQUIREMENT_CHECKER: 0

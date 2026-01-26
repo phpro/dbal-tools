@@ -8,41 +8,28 @@ use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Schema\Table;
 use Symfony\Component\Validator\Constraint;
 
-/**
- * @psalm-suppress MissingConstructor
- */
 final class UniqueConstraint extends Constraint
 {
     /**
-     * @var class-string<Table>
+     * @param class-string<Table>                  $table
+     * @param array<string, TableColumnsInterface> $columns         A mapping between property names and their respective columns
+     * @param array<string, TableColumnsInterface> $identifiers     When set, used to figure out if updating an existing record or creating a new one
+     * @param bool                                 $caseInsensitive When true, the comparison will be case-insensitive using LOWER()
+     * @param string|null                          $path            Path on which to display the error message. If not set, displayed at root object level.
+     * @param list<string>|null                    $groups
      */
-    public string $table;
-
-    /**
-     * @var array<string, TableColumnsInterface> - A mapping between property names and their respective columns
-     */
-    public array $columns;
-
-    public string $message = 'The provided payload at properties "{{ properties }}" does not result in a unique record.';
-
-    /**
-     * When identifiers are set, they will be used in order to figure out if you are updating an existing record or creating a new one.
-     *
-     * @var array<string, TableColumnsInterface> - A mapping between property names and their respective columns
-     */
-    public array $identifiers = [];
-
-    /**
-     * When set to true, the comparison will be case-insensitive.
-     * This uses LOWER() function on both sides of the comparison.
-     */
-    public bool $caseInsensitive = false;
-
-    /**
-     * Can be used to specify a path on which you want to display the error message.
-     * If not set, it will be displayed at root object level.
-     */
-    public ?string $path = null;
+    public function __construct(
+        public string $table,
+        public array $columns,
+        public string $message = 'The provided payload at properties "{{ properties }}" does not result in a unique record.',
+        public array $identifiers = [],
+        public bool $caseInsensitive = false,
+        public ?string $path = null,
+        ?array $groups = null,
+        mixed $payload = null,
+    ) {
+        parent::__construct(null, $groups, $payload);
+    }
 
     public function validatedBy(): string
     {

@@ -54,10 +54,10 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_no_column_was_specified(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [],
-        ]);
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [],
+        );
 
         $this->validator->validate((object) [], $constraint);
 
@@ -72,12 +72,12 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_single_column_is_not_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'id' => UniqueValidatorTableColumns::Id,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['id' => 'f7e2c2df-1786-497b-b71e-43b66073ecc6'], $constraint);
 
@@ -92,14 +92,14 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_is_possible_to_configure_error_messages_and_path(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'id' => UniqueValidatorTableColumns::Id,
             ],
-            'path' => 'myproperty',
-            'message' => 'custom error',
-        ]);
+            path: 'myproperty',
+            message: 'custom error',
+        );
 
         $this->validator->validate((object) ['id' => 'f7e2c2df-1786-497b-b71e-43b66073ecc6'], $constraint);
 
@@ -115,12 +115,12 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_single_column_is_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'id' => UniqueValidatorTableColumns::Id,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['id' => 'f082b7a5-f556-4061-8158-57f9d18606b3'], $constraint);
 
@@ -131,13 +131,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_multi_column_is_not_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'lastName' => UniqueValidatorTableColumns::LastName,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['firstName' => 'Jos', 'lastName' => 'Bos'], $constraint);
 
@@ -152,13 +152,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_multi_column_is_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'lastName' => UniqueValidatorTableColumns::LastName,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['firstName' => 'Jos', 'lastName' => 'Mos'], $constraint);
 
@@ -169,17 +169,17 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_multi_column_is_not_unique_but_the_identifiers_are_matching(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'lastName' => UniqueValidatorTableColumns::LastName,
             ],
-            'identifiers' => [
+            identifiers: [
                 'id' => UniqueValidatorTableColumns::Id,
                 'email' => UniqueValidatorTableColumns::Email,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) [
             'id' => 'f7e2c2df-1786-497b-b71e-43b66073ecc6',
@@ -195,17 +195,17 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_violation_when_multi_column_is_not_unique_and_not_all_identifiers_are_matching(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'lastName' => UniqueValidatorTableColumns::LastName,
             ],
-            'identifiers' => [
+            identifiers: [
                 'id' => UniqueValidatorTableColumns::Id,
                 'email' => UniqueValidatorTableColumns::Email,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) [
             'id' => 'f7e2c2df-1786-497b-b71e-43b66073ecc6',
@@ -229,10 +229,10 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
         $column = UniqueValidatorTableColumns::Id;
         $value = '0c667837-9edb-474b-beba-a6e0c608d6d2';
 
-        $constraint = new UniqueConstraint([
-            'table' => $table,
-            'columns' => ['id' => $column],
-        ]);
+        $constraint = new UniqueConstraint(
+            table: $table,
+            columns: ['id' => $column],
+        );
 
         self::expectException(AssertException::class);
         $this->validator->validate($value, $constraint);
@@ -241,14 +241,14 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_has_constraint_settings(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => ['email' => UniqueValidatorTableColumns::Email],
-            'identifiers' => ['id' => UniqueValidatorTableColumns::Id],
-            'path' => 'property',
-            'message' => 'custom error',
-            'caseInsensitive' => true,
-        ]);
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: ['email' => UniqueValidatorTableColumns::Email],
+            identifiers: ['id' => UniqueValidatorTableColumns::Id],
+            path: 'property',
+            message: 'custom error',
+            caseInsensitive: true,
+        );
 
         self::assertSame(UniqueValidatorTable::class, $constraint->table);
         self::assertSame(['email' => UniqueValidatorTableColumns::Email], $constraint->columns);
@@ -263,13 +263,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_single_column_is_not_unique_case_insensitive(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'email' => UniqueValidatorTableColumns::Email,
             ],
-            'caseInsensitive' => true,
-        ]);
+            caseInsensitive: true,
+        );
 
         $this->validator->validate((object) ['email' => 'JOSBOS@DISPOSTABLE.COM'], $constraint);
 
@@ -284,13 +284,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_single_column_is_unique_case_insensitive(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'email' => UniqueValidatorTableColumns::Email,
             ],
-            'caseInsensitive' => true,
-        ]);
+            caseInsensitive: true,
+        );
 
         $this->validator->validate((object) ['email' => 'UNIQUE@EXAMPLE.COM'], $constraint);
 
@@ -301,14 +301,14 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_multi_column_is_not_unique_case_insensitive(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'lastName' => UniqueValidatorTableColumns::LastName,
             ],
-            'caseInsensitive' => true,
-        ]);
+            caseInsensitive: true,
+        );
 
         $this->validator->validate((object) ['firstName' => 'JOS', 'lastName' => 'BOS'], $constraint);
 
@@ -323,13 +323,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_case_sensitive_and_different_case(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'email' => UniqueValidatorTableColumns::Email,
             ],
-            'caseInsensitive' => false,
-        ]);
+            caseInsensitive: false,
+        );
 
         $this->validator->validate((object) ['email' => 'JOSBOS@DISPOSTABLE.COM'], $constraint);
 
@@ -340,12 +340,12 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_integer_column_is_not_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'age' => UniqueValidatorTableColumns::Age,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['age' => 30], $constraint);
 
@@ -360,12 +360,12 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_integer_column_is_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'age' => UniqueValidatorTableColumns::Age,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['age' => 25], $constraint);
 
@@ -376,13 +376,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_combining_string_and_integer_columns_is_not_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'age' => UniqueValidatorTableColumns::Age,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['firstName' => 'Jos', 'age' => 30], $constraint);
 
@@ -397,13 +397,13 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_combining_string_and_integer_columns_is_unique(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'age' => UniqueValidatorTableColumns::Age,
             ],
-        ]);
+        );
 
         $this->validator->validate((object) ['firstName' => 'Jos', 'age' => 25], $constraint);
 
@@ -414,14 +414,14 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_a_violation_when_combining_string_and_integer_columns_is_not_unique_case_insensitive(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'age' => UniqueValidatorTableColumns::Age,
             ],
-            'caseInsensitive' => true,
-        ]);
+            caseInsensitive: true,
+        );
 
         $this->validator->validate((object) ['firstName' => 'JOS', 'age' => 30], $constraint);
 
@@ -436,14 +436,14 @@ final class UniqueValidatorTest extends DoctrineValidatorTestCase
     #[Test]
     public function it_adds_no_violation_when_combining_string_and_integer_columns_is_unique_case_insensitive(): void
     {
-        $constraint = new UniqueConstraint([
-            'table' => UniqueValidatorTable::class,
-            'columns' => [
+        $constraint = new UniqueConstraint(
+            table: UniqueValidatorTable::class,
+            columns: [
                 'firstName' => UniqueValidatorTableColumns::FirstName,
                 'age' => UniqueValidatorTableColumns::Age,
             ],
-            'caseInsensitive' => true,
-        ]);
+            caseInsensitive: true,
+        );
 
         $this->validator->validate((object) ['firstName' => 'JOS', 'age' => 25], $constraint);
 
