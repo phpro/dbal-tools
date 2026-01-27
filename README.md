@@ -74,18 +74,29 @@ final class UsersTable extends Table
 
     public static function createTable(): DoctrineTable
     {
-        $table = new DoctrineTable(self::name());
-        $table->addColumn(UsersTableColumns::Id->value, Types::GUID, [
-            'notnull' => true,
-        ]);
-        $table->setPrimaryKey([UsersTableColumns::Id->value]);
-
-        $table->addColumn(UsersTableColumns::Username->value, Types::STRING, [
-            'length' => 255,
-            'notnull' => true,
-        ]);
-
-        return $table;
+        return DoctrineTable::editor()
+            ->setUnquotedName(self::name())
+            ->addColumn(
+                Column::editor()
+                    ->setUnquotedName(UsersTableColumns::Id->value)
+                    ->setTypeName(Types::GUID)
+                    ->setNotnull(true)
+                    ->create()
+            )
+            ->addPrimaryKeyConstraint(
+                PrimaryKeyConstraint::editor()
+                    ->setUnquotedColumnNames(UsersTableColumns::Id->value)
+                    ->create()
+            )
+            ->addColumn(
+                Column::editor()
+                    ->setUnquotedName(UsersTableColumns::Username->value)
+                    ->setTypeName(Types::STRING)
+                    ->setLength(255)
+                    ->setNotnull(true)
+                    ->create()
+            )
+            ->create();
     }
 }
 ```
@@ -135,7 +146,9 @@ final class UserNumberSequence extends Sequence
 
     public static function createSequence(): DoctrineSequence
     {
-        return new DoctrineSequence(self::name());
+        return DoctrineSequence::editor()
+            ->setUnquotedName(self::name())
+            ->create();
     }
 }
 ```
