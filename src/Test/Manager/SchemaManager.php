@@ -44,7 +44,7 @@ final readonly class SchemaManager
         $schemaManager = $this->schemaManager;
         $tableNames = map(
             $schemaManager->introspectTableNames(),
-            static fn (OptionallyQualifiedName $name): string => $name->toString()
+            static fn (OptionallyQualifiedName $name): string => $name->getUnqualifiedName()->getValue(),
         );
         /** @psalm-var class-string<Table> $schemaTable */
         foreach ($schemaTables as $schemaTable) {
@@ -95,7 +95,8 @@ final readonly class SchemaManager
 
         $schemaManager = $this->schemaManager;
         $sequenceNames = map(
-            $schemaManager->introspectSequences(), fn (DoctrineSequence $sequence): string => $sequence->getObjectName()->toString()
+            $schemaManager->introspectSequences(),
+            static fn (DoctrineSequence $sequence): string => $sequence->getObjectName()->getUnqualifiedName()->getValue(),
         );
 
         /** @psalm-var class-string<Sequence> $schemaSequence */
