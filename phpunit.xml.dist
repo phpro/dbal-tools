@@ -11,6 +11,7 @@
      displayDetailsOnTestsThatTriggerErrors="true"
      displayDetailsOnTestsThatTriggerNotices="true"
      displayDetailsOnTestsThatTriggerWarnings="true"
+     displayDetailsOnAllIssues="true"
      failOnWarning="true"
      failOnPhpunitWarning="true"
      cacheDirectory=".phpunit.cache"

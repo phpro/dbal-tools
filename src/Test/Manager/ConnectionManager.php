@@ -48,7 +48,7 @@ final class ConnectionManager
             $schemaManager = $preConnection->createSchemaManager();
             $existingDatabases = map(
                 $schemaManager->introspectDatabaseNames(),
-                static fn (UnqualifiedName $name): string => $name->toString()
+                static fn (UnqualifiedName $name): string => $name->getIdentifier()->getValue(),
             );
             if (in_array($dbName, $existingDatabases, true)) {
                 $schemaManager->dropDatabase($dbName);
