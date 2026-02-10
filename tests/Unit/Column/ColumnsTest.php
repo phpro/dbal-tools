@@ -78,6 +78,55 @@ final class ColumnsTest extends TestCase
 
         self::assertSame(['id', 'name'], $actual);
     }
+
+    #[Test]
+    public function it_can_add_columns_with(): void
+    {
+        $columns = Columns::for(TableColumnsImplementation::class);
+        $newColumn = new Column('extra', 'table');
+        $result = $columns->with($newColumn);
+
+        self::assertCount(3, $result);
+        self::assertSame(['id', 'name', 'extra'], array_keys(iterator_to_array($result)));
+        self::assertSame($newColumn, $result->items['extra']);
+
+        // Adding multiple columns
+        $colA = new Column('a', 'table');
+        $colB = new Column('b', 'table');
+        $result2 = $columns->with($colA, $colB);
+        self::assertCount(4, $result2);
+        self::assertSame(['id', 'name', 'a', 'b'], array_keys(iterator_to_array($result2)));
+    }
+
+    #[Test]
+    public function it_can_remove_columns_without(): void
+    {
+        $columns = Columns::for(TableColumnsImplementation::class);
+        $idColumn = new Column('id', 'table');
+        $nameColumn = new Column('name', 'table');
+        $emailColumn = new Column('email', 'table');
+
+        // Remove one column
+        $result = $columns->without($idColumn, $emailColumn);
+        self::assertCount(1, $result);
+        self::assertArrayHasKey('name', $result->items);
+
+        // Remove multiple comments at once:
+        $result = $columns->with($emailColumn)->without($idColumn, $nameColumn);
+        self::assertCount(1, $result);
+        self::assertArrayHasKey('email', $result->items);
+
+        // Remove a column not present (should not change)
+        $notPresent = new Column('not_present', 'table');
+        $result2 = $columns->without($notPresent);
+        self::assertCount(2, $result2);
+        self::assertSame(['id', 'name'], array_keys(iterator_to_array($result2)));
+
+        // Remove all columns one by one, expect exception on empty
+        $oneLeft = $columns->without($idColumn);
+        $this->expectExceptionMessage('At least one column is required.');
+        $oneLeft->without($nameColumn);
+    }
 }
 
 enum TableColumnsImplementation: string implements TableColumnsInterface

@@ -6,7 +6,10 @@ namespace Phpro\DbalTools\Column;
 
 use function Psl\Dict\reindex;
 use function Psl\invariant;
+use function Psl\Iter\contains;
+use function Psl\Vec\filter_nulls;
 use function Psl\Vec\map;
+use function Psl\Vec\values;
 
 /**
  * @template-implements \IteratorAggregate<non-empty-string, Column>
@@ -41,6 +44,28 @@ final readonly class Columns implements \IteratorAggregate, \Countable
             /** @return non-empty-string */
             static fn (Column $column): string => $column->alias ?? $column->name,
         );
+    }
+
+    /**
+     * @no-named-arguments
+     */
+    public function without(Column $column, Column ...$others): self
+    {
+        $exclude = map([$column, ...$others], static fn (Column $other) => $other->toSQL());
+
+        return new self(...filter_nulls(
+            $this->traverse(fn (Column $current): ?Column => (
+                contains($exclude, $current->toSQL()) ? null : $current
+            ))
+        ));
+    }
+
+    /**
+     * @no-named-arguments
+     */
+    public function with(Column $column, Column ...$others): self
+    {
+        return new self(...[...values($this->items), $column, ...$others]);
     }
 
     /**
