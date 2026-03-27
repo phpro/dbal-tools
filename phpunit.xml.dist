@@ -19,7 +19,6 @@
     <php>
         <ini name="display_errors" value="1" />
         <ini name="error_reporting" value="-1" />
-        <ini name="variables_order" value="EGPCS" />
         <env name="DATABASE_URL" value="postgresql://root:toor@127.0.0.1:5432/dbal_tools?serverVersion=16&amp;charset=utf8" />
     </php>
 
