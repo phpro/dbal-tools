@@ -183,4 +183,100 @@ final class ComparisonTest extends DbalReaderTestCase
         self::assertSame($actualResults[1], true);
         self::assertSame($actualResults[2], false);
     }
+
+    #[Test]
+    public function it_can_perform_contains_checks_on_arrays(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select(
+            Comparison::contains(
+                new SqlExpression('ARRAY[1,2,3]'),
+                new SqlExpression('ARRAY[1,2]')
+            )->toSQL(),
+            Comparison::contains(
+                new SqlExpression('ARRAY[1,2]'),
+                new SqlExpression('ARRAY[1,2,3]')
+            )->toSQL()
+        );
+
+        $actualResults = $qb->fetchNumeric();
+        if (!$actualResults) {
+            $this->fail('No results found');
+        }
+
+        self::assertSame($actualResults[0], true);
+        self::assertSame($actualResults[1], false);
+    }
+
+    #[Test]
+    public function it_can_perform_contains_checks_on_jsonb(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select(
+            Comparison::contains(
+                new SqlExpression("'[\"ROLE_USER\", \"ROLE_ADMIN\"]'::jsonb"),
+                new SqlExpression("'[\"ROLE_USER\"]'::jsonb")
+            )->toSQL(),
+            Comparison::contains(
+                new SqlExpression("'[\"ROLE_USER\"]'::jsonb"),
+                new SqlExpression("'[\"ROLE_ADMIN\"]'::jsonb")
+            )->toSQL()
+        );
+
+        $actualResults = $qb->fetchNumeric();
+        if (!$actualResults) {
+            $this->fail('No results found');
+        }
+
+        self::assertSame($actualResults[0], true);
+        self::assertSame($actualResults[1], false);
+    }
+
+    #[Test]
+    public function it_can_perform_contained_by_checks_on_arrays(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select(
+            Comparison::containedBy(
+                new SqlExpression('ARRAY[1,2]'),
+                new SqlExpression('ARRAY[1,2,3]')
+            )->toSQL(),
+            Comparison::containedBy(
+                new SqlExpression('ARRAY[1,2,3]'),
+                new SqlExpression('ARRAY[1,2]')
+            )->toSQL()
+        );
+
+        $actualResults = $qb->fetchNumeric();
+        if (!$actualResults) {
+            $this->fail('No results found');
+        }
+
+        self::assertSame($actualResults[0], true);
+        self::assertSame($actualResults[1], false);
+    }
+
+    #[Test]
+    public function it_can_perform_contained_by_checks_on_jsonb(): void
+    {
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select(
+            Comparison::containedBy(
+                new SqlExpression("'[\"ROLE_USER\"]'::jsonb"),
+                new SqlExpression("'[\"ROLE_USER\", \"ROLE_ADMIN\"]'::jsonb")
+            )->toSQL(),
+            Comparison::containedBy(
+                new SqlExpression("'[\"ROLE_ADMIN\"]'::jsonb"),
+                new SqlExpression("'[\"ROLE_USER\"]'::jsonb")
+            )->toSQL()
+        );
+
+        $actualResults = $qb->fetchNumeric();
+        if (!$actualResults) {
+            $this->fail('No results found');
+        }
+
+        self::assertSame($actualResults[0], true);
+        self::assertSame($actualResults[1], false);
+    }
 }
