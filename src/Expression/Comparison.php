@@ -46,6 +46,16 @@ final readonly class Comparison implements Expression
         return new self($left, '<=', $right);
     }
 
+    public static function contains(Expression $left, Expression $right): self
+    {
+        return new self($left, '@>', $right);
+    }
+
+    public static function containedBy(Expression $left, Expression $right): self
+    {
+        return new self($left, '<@', $right);
+    }
+
     /**
      * @return non-empty-string
      */
