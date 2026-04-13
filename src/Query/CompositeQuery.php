@@ -264,9 +264,9 @@ final class CompositeQuery implements Expression
                     static fn (string $alias, array $query): string => sprintf(
                         '%s AS %s(%s)',
                         $alias,
-                        match (true) {
-                            ($query[1]?->materialized ?? null) === true => 'MATERIALIZED ',
-                            ($query[1]?->materialized ?? null) === false => 'NOT MATERIALIZED ',
+                        match ($query[1]?->materialized ?? null) {
+                            true => 'MATERIALIZED ',
+                            false => 'NOT MATERIALIZED ',
                             default => '',
                         },
                         $query[0]->getSQL()
