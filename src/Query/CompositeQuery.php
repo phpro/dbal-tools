@@ -265,8 +265,8 @@ final class CompositeQuery implements Expression
                         '%s AS %s(%s)',
                         $alias,
                         match (true) {
-                            $query[1]?->materialized ?? null === true => 'MATERIALIZED ',
-                            $query[1]?->materialized ?? null === false => 'NOT MATERIALIZED ',
+                            ($query[1]?->materialized ?? null) === true => 'MATERIALIZED ',
+                            ($query[1]?->materialized ?? null) === false => 'NOT MATERIALIZED ',
                             default => '',
                         },
                         $query[0]->getSQL()
