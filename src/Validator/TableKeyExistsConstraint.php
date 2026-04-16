@@ -6,6 +6,7 @@ namespace Phpro\DbalTools\Validator;
 
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Schema\Table;
+use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 final class TableKeyExistsConstraint extends Constraint
@@ -14,6 +15,7 @@ final class TableKeyExistsConstraint extends Constraint
      * @param class-string<Table> $table
      * @param list<string>|null   $groups
      */
+    #[HasNamedArguments]
     public function __construct(
         public string $table,
         public TableColumnsInterface $column,
