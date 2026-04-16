@@ -6,6 +6,7 @@ namespace Phpro\DbalTools\Validator;
 
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Schema\Table;
+use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 final class UniqueConstraint extends Constraint
@@ -18,6 +19,7 @@ final class UniqueConstraint extends Constraint
      * @param string|null                          $path            Path on which to display the error message. If not set, displayed at root object level.
      * @param list<string>|null                    $groups
      */
+    #[HasNamedArguments]
     public function __construct(
         public string $table,
         public array $columns,
