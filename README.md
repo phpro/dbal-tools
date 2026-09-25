@@ -629,6 +629,13 @@ App\Domain\Model\User:
 Dealing with pagination is a task that is often needed.
 This package contains some tools to help you with that:
 
+* `WindowCountPager` - the default: one query, the total counted with a window function.
+* `DeferredProjectionPager` - for rows that carry aggregated or joined objects.
+
+Both are honest implementations of `Pager` and both stay: pick the one that matches the width of your rows.
+
+## WindowCountPager
+
 ```php
 use Phpro\DbalTools\Pager\MappingPager;
 use Phpro\DbalTools\Pager\Pager;
@@ -651,6 +658,143 @@ $totalResults = $usersPager->totalResults();
 $totalPages = $usersPager->totalPages();
 $users = [...$usersPager];
 ```
+
+## DeferredProjectionPager
+
+`WindowCountPager` adds `COUNT(1) OVER()` to the query it pages.
+PostgreSQL evaluates window functions before `ORDER BY`/`LIMIT` at the same query level, so every matching
+row is buffered before the page is cut.
+That is free for a narrow row, and expensive as soon as the row carries a `jsonb_build_object` or a
+`jsonb_agg_strict` projection over joined tables: those buffered rows are kilobytes wide and spill to temp
+files.
+
+`DeferredProjectionPager` pages *narrow* rows - the key column plus the count window - inside a CTE, and
+joins the fat projection onto that CTE.
+The total is still computed over the whole matching set, but out of `(key, total)` rows, and the expensive
+projection is only evaluated for the page that is returned.
+It remains a single statement, so there is one snapshot and no second round trip.
+
+**Which one to reach for:**
+
+* `WindowCountPager` for a narrow row. It is correct, cheaper, and pays nothing for a CTE it does not need.
+* `DeferredProjectionPager` when a row carries aggregated or joined objects.
+
+```php
+use Doctrine\DBAL\Query\QueryBuilder;
+use Phpro\DbalTools\Expression\Alias;
+use Phpro\DbalTools\Expression\Factory\NamedParameter;
+use Phpro\DbalTools\Expression\ILike;
+use Phpro\DbalTools\Expression\JsonbAggStrict;
+use Phpro\DbalTools\Expression\JsonbBuildObject;
+use Phpro\DbalTools\Expression\OrderBy;
+use Phpro\DbalTools\Pager\DeferredProjectionPager;
+use Phpro\DbalTools\Pager\MappingPager;
+use Phpro\DbalTools\Pager\Pagination;
+use Phpro\DbalTools\Query\CompositeQuery;
+
+// Which rows: the key column and every filter. No display columns, no join that only adds data.
+$keys = $connection->createQueryBuilder();
+$matchingKeys = new CompositeQuery(
+    $connection,
+    $keys
+        ->select(UsersTableColumns::Id->select())
+        ->from(UsersTable::name())
+        ->where(new ILike(
+            UsersTableColumns::Username->column(),
+            NamedParameter::createForTableColumn($keys, UsersTableColumns::Username, 'jo%', ':username'),
+        )->toSQL()),
+    [],
+);
+
+$usersPager = new MappingPager(
+    DeferredProjectionPager::create(
+        pagination: new Pagination(page: $page, limit: $limit),
+        matchingKeys: $matchingKeys,
+        key: UsersTableColumns::Id->column(),
+        order: new OrderBy(OrderBy::field(UsersTableColumns::Username->column(), OrderBy::ASC)),
+        // What a row looks like: a new query from the table of the key.
+        // This one needs no CTE, so it ignores both arguments.
+        projection: static fn (CompositeQuery $folded, string $pageAlias): QueryBuilder => $connection->createQueryBuilder()
+            ->select(
+                ...UsersTable::columns()->select(),
+                ...[new Alias(
+                    JsonbAggStrict::onManyLeftJoinedJsonObjects(
+                        new JsonbBuildObject([
+                            'id' => PostsTableColumns::Id->column(),
+                            'post' => PostsTableColumns::Post->column(),
+                        ]),
+                        PostsTableColumns::Id->column(),
+                    ),
+                    'posts',
+                )->toSQL()],
+            )
+            ->from(UsersTable::name())
+            ->leftJoin(...UsersTable::joinOntoPosts())
+            ->groupBy(UsersTableColumns::Id->use()),
+    ),
+    $userMapper,
+);
+```
+
+For page 2 with a limit of 10, that runs as one statement. The main query of `$matchingKeys` became the
+`deferred_page` CTE, with the count window, the order and the page added to it. The projection became the
+new main query, joined onto that CTE:
+
+```sql
+WITH deferred_page AS (
+    SELECT users.user_id, COUNT(1) OVER() AS total_results
+    FROM users
+    WHERE users.username ILIKE :username
+    ORDER BY users.username ASC
+    LIMIT 10 OFFSET 10
+)
+SELECT
+    users.user_id, users.username, users.first_name, users.last_name,
+    jsonb_agg_strict(
+        CASE WHEN posts.post_id IS NULL THEN NULL
+        ELSE jsonb_build_object('id', posts.post_id, 'post', posts.post) END
+    ) AS posts,
+    (SELECT deferred_page.total_results FROM deferred_page LIMIT 1) AS total_results
+FROM users
+LEFT JOIN posts posts ON users.user_id = posts.user_id
+INNER JOIN deferred_page deferred_page ON users.user_id = deferred_page.user_id
+GROUP BY users.user_id
+ORDER BY users.username ASC
+```
+
+You describe the list twice:
+
+* `matchingKeys` decides which rows are in the list: a composite whose main query selects the key column
+  and nothing else, with every filter and scope join. No display columns, order or limit, the pager adds
+  those.
+* `key` is that column, table qualified. The page is joined back to the projection on it.
+* `projection` decides what a row looks like: a new query builder selecting everything a row shows from the
+  table of the key, with its joins, aggregates and group by, and no filters, order or limit. The closure
+  receives the composite that will run and the name of the page CTE. Use the composite to join a CTE
+  registered on `matchingKeys` or to register one of your own; a projection that needs no CTE ignores both
+  arguments.
+
+Things worth knowing:
+
+* The filters and the scope joins belong on `$matchingKeys`. A filter applied by the projection would drop
+  rows after the total was computed, so the page would come back short and the total would over-report.
+* To filter on a related table, for example users with a matching post, use `EXISTS` on `$matchingKeys`
+  rather than a join: a join yields the key once per matching post. To limit which related rows the
+  projection aggregates, put the condition in its `LEFT JOIN`, not in a `WHERE`, so rows without a match
+  stay on the page.
+* Every CTE you registered on `$matchingKeys` survives the fold, and so does a parameter bound on its main
+  query: that same query builder is moved into the `WITH` list, and `CompositeQuery::execute()` merges the
+  parameters of every registered builder.
+* The key must be table qualified (the join is derived from it) and unique among the matching keys. A
+  duplicate multiplies the projected rows and makes the total disagree with the page.
+* Aggregate freely. The pager reads its count as a scalar sub-query rather than as a column of the joined
+  CTE, so a projection that groups needs no group-by for it.
+* The pager owns the join onto the page CTE, the count column, and the order - which it applies to both
+  levels, since the narrow sort decides *which* rows the page holds and the outer one the order they come
+  back in. The closure only supplies its projection.
+* The projection closure **returns** its query rather than writing onto the folded main query, because
+  `QueryBuilder` keeps its select, from and join parts private with no setters.
+* Rows are yielded verbatim, the count field included, exactly like `WindowCountPager`.
 
 # Building queries
 
