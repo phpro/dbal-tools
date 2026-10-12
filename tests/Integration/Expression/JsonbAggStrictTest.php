@@ -6,7 +6,8 @@ namespace PhproTest\DbalTools\Integration\Expression;
 
 use Doctrine\DBAL\Schema\Column as DoctrineColumn;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
-use Doctrine\DBAL\Types\GuidType;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Column\Column;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Column\TableColumnsInterface;
@@ -193,7 +194,7 @@ class JsonAggStrictTable extends Table
     public static function createTable(): DoctrineTable
     {
         return new DoctrineTable(self::name(), [
-            new DoctrineColumn(JsonAggStrictTableColumns::Id->value, new GuidType()),
+            new DoctrineColumn(JsonAggStrictTableColumns::Id->value, Type::getType(Types::GUID)),
         ]);
     }
 }

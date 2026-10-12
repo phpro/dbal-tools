@@ -6,8 +6,8 @@ namespace PhproTest\DbalTools\Integration\Expression;
 
 use Doctrine\DBAL\Schema\Column as DoctrineColumn;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
-use Doctrine\DBAL\Types\GuidType;
-use Doctrine\DBAL\Types\StringType;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Column\TableColumnsTrait;
@@ -137,9 +137,9 @@ class SearchTable extends Table
     public static function createTable(): DoctrineTable
     {
         return new DoctrineTable(self::name(), [
-            new DoctrineColumn(SearchTableColumns::Id->value, new GuidType()),
-            new DoctrineColumn(SearchTableColumns::FirstName->value, new StringType()),
-            new DoctrineColumn(SearchTableColumns::LastName->value, new StringType()),
+            new DoctrineColumn(SearchTableColumns::Id->value, Type::getType(Types::GUID)),
+            new DoctrineColumn(SearchTableColumns::FirstName->value, Type::getType(Types::STRING)),
+            new DoctrineColumn(SearchTableColumns::LastName->value, Type::getType(Types::STRING)),
         ]);
     }
 }

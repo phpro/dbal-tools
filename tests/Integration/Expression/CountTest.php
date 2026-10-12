@@ -6,7 +6,8 @@ namespace PhproTest\DbalTools\Integration\Expression;
 
 use Doctrine\DBAL\Schema\Column as DoctrineColumn;
 use Doctrine\DBAL\Schema\Table as DoctrineTable;
-use Doctrine\DBAL\Types\GuidType;
+use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Column\Columns;
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Column\TableColumnsTrait;
@@ -69,7 +70,7 @@ class CountTable extends Table
     public static function createTable(): DoctrineTable
     {
         return new DoctrineTable(self::name(), [
-            new DoctrineColumn(CountTableColumns::Id->value, new GuidType()),
+            new DoctrineColumn(CountTableColumns::Id->value, Type::getType(Types::GUID)),
         ]);
     }
 }
