@@ -24,7 +24,7 @@ final readonly class Vector implements Expression
     {
         return sprintf(
             'array [%s]',
-            $this->items?->join(', ')->toSQL()
+            $this->items ? $this->items->join(', ')->toSQL() : ''
         );
     }
 }
