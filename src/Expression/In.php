@@ -44,12 +44,11 @@ final readonly class In implements Expression
         ?string $elementType = null,
     ): self {
         $elements = new JsonbArrayElementsText($jsonArray);
+        $selected = null !== $elementType ? new Cast($elementType, $elements) : $elements;
 
         return new self(
             $subject,
-            new Expressions(
-                new SqlExpression('SELECT '.(null !== $elementType ? new Cast($elementType, $elements) : $elements)->toSQL()),
-            ),
+            new Expressions(new SqlExpression('SELECT '.$selected->toSQL())),
         );
     }
 
