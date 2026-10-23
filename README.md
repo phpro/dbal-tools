@@ -815,14 +815,14 @@ PostgreSQL accepts at most 65,535 bound parameters per statement, so a user supp
 ```php
 use Phpro\DbalTools\Expression\Cast;
 use Phpro\DbalTools\Expression\In;
-use Phpro\DbalTools\Expression\JsonbGet;
+use Phpro\DbalTools\Expression\JsonbExtract;
 use Phpro\DbalTools\Expression\SqlExpression;
 use function Psl\Json\encode;
 
 $qb->where(
     In::jsonbArrayElementsText(
         new SqlExpression('username'),
-        JsonbGet::field(Cast::jsonb(SqlExpression::parameter(':selection')), 'usernames'),
+        JsonbExtract::field(Cast::jsonb(SqlExpression::parameter(':selection')), 'usernames'),
     )->toSQL()
 )->setParameter('selection', encode(['usernames' => $usernames]));
 ```

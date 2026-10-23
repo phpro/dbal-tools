@@ -7,7 +7,7 @@ namespace PhproTest\DbalTools\Integration\Expression;
 use Phpro\DbalTools\Expression\Cast;
 use Phpro\DbalTools\Expression\Expressions;
 use Phpro\DbalTools\Expression\In;
-use Phpro\DbalTools\Expression\JsonbGet;
+use Phpro\DbalTools\Expression\JsonbExtract;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Test\DbalReaderTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -71,7 +71,7 @@ final class InTest extends DbalReaderTestCase
             "col IN (SELECT jsonb_array_elements_text(:param::JSONB -> 'key'))",
             In::jsonbArrayElementsText(
                 new SqlExpression('col'),
-                JsonbGet::field(Cast::jsonb(SqlExpression::parameter(':param')), 'key'),
+                JsonbExtract::field(Cast::jsonb(SqlExpression::parameter(':param')), 'key'),
             )->toSQL()
         );
     }
@@ -100,7 +100,7 @@ final class InTest extends DbalReaderTestCase
             )->where(
                 In::jsonbArrayElementsText(
                     new SqlExpression('name'),
-                    JsonbGet::field(Cast::jsonb(SqlExpression::parameter(':param')), 'names'),
+                    JsonbExtract::field(Cast::jsonb(SqlExpression::parameter(':param')), 'names'),
                 )->toSQL()
             )
             ->setParameter('param', encode(['names' => ['jos', "it's"]]));

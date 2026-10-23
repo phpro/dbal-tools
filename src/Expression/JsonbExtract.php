@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phpro\DbalTools\Expression;
 
-final readonly class JsonbGet implements Expression
+final readonly class JsonbExtract implements Expression
 {
     /**
      * @param non-empty-string $operator

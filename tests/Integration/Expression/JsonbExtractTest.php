@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace PhproTest\DbalTools\Integration\Expression;
 
 use Phpro\DbalTools\Expression\Cast;
-use Phpro\DbalTools\Expression\JsonbGet;
+use Phpro\DbalTools\Expression\JsonbExtract;
 use Phpro\DbalTools\Expression\LiteralString;
 use Phpro\DbalTools\Expression\SqlExpression;
 use Phpro\DbalTools\Test\DbalReaderTestCase;
 use PHPUnit\Framework\Attributes\Test;
 
-final class JsonbGetTest extends DbalReaderTestCase
+final class JsonbExtractTest extends DbalReaderTestCase
 {
     protected function createFixtures(): void
     {
@@ -27,7 +27,7 @@ final class JsonbGetTest extends DbalReaderTestCase
     {
         self::assertSame(
             "data -> 'key'",
-            JsonbGet::field(new SqlExpression('data'), 'key')->toSQL()
+            JsonbExtract::field(new SqlExpression('data'), 'key')->toSQL()
         );
     }
 
@@ -36,7 +36,7 @@ final class JsonbGetTest extends DbalReaderTestCase
     {
         self::assertSame(
             "data ->> 'key'",
-            JsonbGet::text(new SqlExpression('data'), 'key')->toSQL()
+            JsonbExtract::text(new SqlExpression('data'), 'key')->toSQL()
         );
     }
 
@@ -45,7 +45,7 @@ final class JsonbGetTest extends DbalReaderTestCase
     {
         self::assertSame(
             "data -> 'it''s'",
-            JsonbGet::field(new SqlExpression('data'), "it's")->toSQL()
+            JsonbExtract::field(new SqlExpression('data'), "it's")->toSQL()
         );
     }
 
@@ -56,9 +56,9 @@ final class JsonbGetTest extends DbalReaderTestCase
 
         $qb = $this->connection()->createQueryBuilder();
         $qb->select(
-            JsonbGet::field($json, 'name')->toSQL(),
-            JsonbGet::text($json, 'name')->toSQL(),
-            JsonbGet::field($json, "it's")->toSQL(),
+            JsonbExtract::field($json, 'name')->toSQL(),
+            JsonbExtract::text($json, 'name')->toSQL(),
+            JsonbExtract::field($json, "it's")->toSQL(),
         );
 
         $actualResults = $qb->fetchNumeric();
