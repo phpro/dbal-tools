@@ -32,6 +32,26 @@ final readonly class In implements Expression
         );
     }
 
+    /**
+     * Binding the values as one JSON array keeps large lists under the bound parameter limit of PostgreSQL.
+     * The elements are text, so pass an element type when the subject is not a text column.
+     *
+     * @param non-empty-string|null $elementType
+     */
+    public static function jsonbArrayElementsText(
+        Expression $subject,
+        Expression $jsonArray,
+        ?string $elementType = null,
+    ): self {
+        $elements = new JsonbArrayElementsText($jsonArray);
+        $selected = null !== $elementType ? new Cast($elementType, $elements) : $elements;
+
+        return new self(
+            $subject,
+            new Expressions(new SqlExpression('SELECT '.$selected->toSQL())),
+        );
+    }
+
     public function toSQL(): string
     {
         return sprintf(

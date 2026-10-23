@@ -50,4 +50,16 @@ final class CastTest extends DbalReaderTestCase
         self::assertSame($actualResults[2], '2023-01-01');
         self::assertSame($actualResults[3], '2023-01-01 10:00:00');
     }
+
+    #[Test]
+    public function it_can_cast_to_jsonb(): void
+    {
+        $expression = Cast::jsonb(new LiteralString('{"a": 1}'));
+        self::assertSame("'{\"a\": 1}'::JSONB", $expression->toSQL());
+
+        $qb = $this->connection()->createQueryBuilder();
+        $qb->select($expression->toSQL());
+
+        self::assertSame('{"a": 1}', $qb->fetchOne());
+    }
 }
