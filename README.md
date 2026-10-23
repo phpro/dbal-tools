@@ -807,6 +807,32 @@ A few notable places:
 * There is a `Phpro\DbalTools\Query\CompositeQuery` that can be used to build composite queries (CTEs)
 * Inside the `Phpro\DbalTools\Expression` namespace, you can find a lot of classes that can be used to build partial SQL expressions.
 
+## Large IN lists
+
+PostgreSQL accepts at most 65,535 bound parameters per statement, so a user supplied list can not always be bound value by value.
+`In::jsonbArrayElementsText()` matches against a single JSON parameter instead:
+
+```php
+use Phpro\DbalTools\Expression\Cast;
+use Phpro\DbalTools\Expression\In;
+use Phpro\DbalTools\Expression\JsonbGet;
+use Phpro\DbalTools\Expression\SqlExpression;
+use function Psl\Json\encode;
+
+$qb->where(
+    In::jsonbArrayElementsText(
+        new SqlExpression('username'),
+        JsonbGet::field(Cast::jsonb(SqlExpression::parameter(':selection')), 'usernames'),
+    )->toSQL()
+)->setParameter('selection', encode(['usernames' => $usernames]));
+```
+
+```sql
+username IN (SELECT jsonb_array_elements_text(:selection::JSONB -> 'usernames'))
+```
+
+The array elements are text. Pass an element type, for example `'UUID'` or `'INT'`, as the third argument when the subject is not a text column.
+
 ## About
 
 ### Submitting bugs and feature requests

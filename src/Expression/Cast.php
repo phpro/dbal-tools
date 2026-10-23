@@ -32,6 +32,11 @@ final readonly class Cast implements Expression
         return new self('TIMESTAMP', $expression);
     }
 
+    public static function jsonb(Expression $expression): self
+    {
+        return new self('JSONB', $expression);
+    }
+
     /**
      * @return non-empty-string
      */
