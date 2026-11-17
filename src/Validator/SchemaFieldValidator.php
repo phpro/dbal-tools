@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Phpro\DbalTools\Validator;
 
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Schema\Table;
 use Symfony\Component\Validator\Constraint;
@@ -40,7 +42,7 @@ final class SchemaFieldValidator extends ConstraintValidator
                 ->addViolation();
         }
 
-        $range = self::integerRange($column->getTypeName());
+        $range = self::integerRange(self::typeNameOf($column));
         if (null !== $range && is_int($value) && ($value < $range[0] || $value > $range[1])) {
             $this->context->buildViolation('This value should be between {{ min }} and {{ max }}.')
                 ->setParameter('{{ min }}', (string) $range[0])
@@ -48,6 +50,20 @@ final class SchemaFieldValidator extends ConstraintValidator
                 ->setTranslationDomain('validators')
                 ->addViolation();
         }
+    }
+
+    /**
+     * DBAL 4.5 deprecates Column::getType() in favour of getTypeName(), which does not exist before 4.5.
+     *
+     * Each DBAL version only runs one branch, so this stays on one line to keep line coverage at 100%.
+     *
+     * @psalm-suppress DeprecatedMethod - Only deprecated from DBAL 4.5, where the getTypeName() branch is taken.
+     * @psalm-suppress MixedReturnStatement - Before DBAL 4.5 getTypeName() is unknown, so its result is mixed.
+     * @psalm-suppress UnusedPsalmSuppress - Each suppression only applies to one DBAL version.
+     */
+    private static function typeNameOf(Column $column): string
+    {
+        return method_exists($column, 'getTypeName') ? $column->getTypeName() : Type::lookupName($column->getType());
     }
 
     /**
