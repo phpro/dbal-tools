@@ -33,7 +33,7 @@ final class ConnectionManager
             $dbalConfig = new Configuration();
             $dbalConfig->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
 
-            $connectionFactory = new ConnectionFactory([]);
+            $connectionFactory = new ConnectionFactory();
 
             // Use unique suffix for paratest:
             $dbSuffix = '_test'.((string) getenv('TEST_TOKEN'));
