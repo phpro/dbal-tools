@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phpro\DbalTools\Validator;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
 use Phpro\DbalTools\Column\TableColumnsInterface;
 use Phpro\DbalTools\Expression\Cast;
 use Phpro\DbalTools\Expression\Comparison;
@@ -92,9 +91,9 @@ final class UniqueValidator extends ConstraintValidator
             $identifiers,
             fn (bool $isCurrent, string $property, TableColumnsInterface $column): bool => $isCurrent
                 && array_key_exists((string) $column->value, $res)
-                && $res[(string) $column->value] === $this->connection->convertToDatabaseValue(
+                && $res[(string) $column->value] === $column->columnType()->convertToDatabaseValue(
                     $this->accessor->getValue($value, $property),
-                    Type::lookupName($column->columnType())
+                    $this->connection->getDatabasePlatform()
                 ),
             true
         );

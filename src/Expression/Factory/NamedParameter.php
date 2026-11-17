@@ -30,8 +30,6 @@ final class NamedParameter
         mixed $value,
         ?string $parameterName = null,
     ): SqlExpression {
-        $type = $type instanceof Type ? $type : Type::getType($type);
-
         return SqlExpression::parameter(
             $queryBuilder->createNamedParameter($value, $type, $parameterName)
         );

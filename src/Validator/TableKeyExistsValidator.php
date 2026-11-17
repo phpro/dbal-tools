@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phpro\DbalTools\Validator;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
 use Phpro\DbalTools\Expression\Distinct;
 use Phpro\DbalTools\Expression\Factory\NamedParameter;
 use Phpro\DbalTools\Expression\In;
@@ -75,9 +74,10 @@ final class TableKeyExistsValidator extends ConstraintValidator
             return;
         }
 
-        $columnType = Type::lookupName($column->columnType());
+        $columnType = $column->columnType();
+        $platform = $this->connection->getDatabasePlatform();
         $missing = array_diff(
-            map($in, fn ($current): mixed => $this->connection->convertToDatabaseValue($current, $columnType)),
+            map($in, static fn ($current): mixed => $columnType->convertToDatabaseValue($current, $platform)),
             $results
         );
         foreach ($missing as $path => $_) {
