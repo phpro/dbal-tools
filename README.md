@@ -569,7 +569,8 @@ This package contains a set of common validators that can be used to validate yo
 ### SchemaFieldValidator
 
 This validator can be used to validate if a field exists in the database schema.
-It will perform checks like: Does the provided input length exceed the length of the column in the database schema.
+It will perform checks like: Does the provided input length exceed the length of the column in the database schema,
+and does an integer fit the range of a `SMALLINT` or `INTEGER` column.
 
 Example configuration:
 

@@ -11,8 +11,10 @@ use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Validator\SchemaFieldConstraint;
 use Phpro\DbalTools\Validator\SchemaFieldValidator;
 use PhproTest\DbalTools\Fixtures\Schema\NonExistingTableColumns;
+use PhproTest\DbalTools\Fixtures\Schema\NumericTableColumns;
 use PhproTest\DbalTools\Fixtures\Schema\UsersTable;
 use PhproTest\DbalTools\Fixtures\Schema\UsersTableColumns;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psl\Type\Exception\AssertException;
 use Symfony\Component\Validator\Constraint;
@@ -26,6 +28,9 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
         $usersTable = new Table('users');
         $usersTable->addColumn('first_name', Types::STRING, ['length' => 10]);
         $usersTable->addColumn('last_name', Types::STRING, []);
+        $usersTable->addColumn('small_int', Types::SMALLINT, []);
+        $usersTable->addColumn('integer', Types::INTEGER, []);
+        $usersTable->addColumn('big_int', Types::BIGINT, []);
 
         $this->validator = new SchemaFieldValidator(
             new Schema([
@@ -130,6 +135,73 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
 
         $violationList = $this->context->getViolations();
         $this->assertSame(0, $violationList->count());
+    }
+
+    #[Test]
+    #[DataProvider('provideOutOfRangeIntegers')]
+    public function it_adds_a_violation_when_an_integer_is_outside_the_column_range(
+        NumericTableColumns $column,
+        int $value,
+        string $min,
+        string $max,
+    ): void {
+        $constraint = new SchemaFieldConstraint(
+            table: UsersTable::class,
+            column: $column,
+        );
+
+        $this->validator->validate($value, $constraint);
+
+        $this->buildViolation('This value should be between {{ min }} and {{ max }}.')
+            ->setParameter('{{ min }}', $min)
+            ->setParameter('{{ max }}', $max)
+            ->setTranslationDomain('validators')
+            ->assertRaised();
+    }
+
+    public static function provideOutOfRangeIntegers(): iterable
+    {
+        yield 'smallint below' => [NumericTableColumns::SmallInt, -32_769, '-32768', '32767'];
+        yield 'smallint above' => [NumericTableColumns::SmallInt, 32_768, '-32768', '32767'];
+        yield 'integer below' => [NumericTableColumns::Integer, -2_147_483_649, '-2147483648', '2147483647'];
+        yield 'integer above' => [NumericTableColumns::Integer, 2_147_483_648, '-2147483648', '2147483647'];
+    }
+
+    #[Test]
+    #[DataProvider('provideInRangeIntegers')]
+    public function it_adds_no_violations_when_an_integer_fits_the_column(NumericTableColumns $column, int $value): void
+    {
+        $constraint = new SchemaFieldConstraint(
+            table: UsersTable::class,
+            column: $column,
+        );
+
+        $this->validator->validate($value, $constraint);
+
+        $this->assertNoViolation();
+    }
+
+    public static function provideInRangeIntegers(): iterable
+    {
+        yield 'smallint min' => [NumericTableColumns::SmallInt, -32_768];
+        yield 'smallint max' => [NumericTableColumns::SmallInt, 32_767];
+        yield 'integer min' => [NumericTableColumns::Integer, -2_147_483_648];
+        yield 'integer max' => [NumericTableColumns::Integer, 2_147_483_647];
+        yield 'bigint min' => [NumericTableColumns::BigInt, PHP_INT_MIN];
+        yield 'bigint max' => [NumericTableColumns::BigInt, PHP_INT_MAX];
+    }
+
+    #[Test]
+    public function it_adds_no_violations_when_an_integer_column_receives_null(): void
+    {
+        $constraint = new SchemaFieldConstraint(
+            table: UsersTable::class,
+            column: NumericTableColumns::Integer,
+        );
+
+        $this->validator->validate(null, $constraint);
+
+        $this->assertNoViolation();
     }
 
     #[Test]
