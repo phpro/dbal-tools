@@ -12,11 +12,12 @@ enum NumericTableColumns: string implements TableColumnsInterface
     case SmallInt = 'small_int';
     case Integer = 'integer';
     case BigInt = 'big_int';
+    case NumericId = 'numeric_id';
 
     use TableColumnsTrait;
 
     public function linkedTableClass(): string
     {
-        return UsersTable::class;
+        return NumericTable::class;
     }
 }

@@ -7,13 +7,16 @@ namespace PhproTest\DbalTools\Unit\Validator;
 use Doctrine\DBAL\Schema\Exception\ColumnDoesNotExist;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use Phpro\DbalTools\Validator\SchemaFieldConstraint;
 use Phpro\DbalTools\Validator\SchemaFieldValidator;
 use PhproTest\DbalTools\Fixtures\Schema\NonExistingTableColumns;
+use PhproTest\DbalTools\Fixtures\Schema\NumericTable;
 use PhproTest\DbalTools\Fixtures\Schema\NumericTableColumns;
 use PhproTest\DbalTools\Fixtures\Schema\UsersTable;
 use PhproTest\DbalTools\Fixtures\Schema\UsersTableColumns;
+use PhproTest\DbalTools\Fixtures\Type\NumericIdType;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psl\Type\Exception\AssertException;
@@ -28,13 +31,15 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
         $usersTable = new Table('users');
         $usersTable->addColumn('first_name', Types::STRING, ['length' => 10]);
         $usersTable->addColumn('last_name', Types::STRING, []);
-        $usersTable->addColumn('small_int', Types::SMALLINT, []);
-        $usersTable->addColumn('integer', Types::INTEGER, []);
-        $usersTable->addColumn('big_int', Types::BIGINT, []);
+
+        if (!Type::hasType(NumericIdType::NAME)) {
+            Type::addType(NumericIdType::NAME, NumericIdType::class);
+        }
 
         $this->validator = new SchemaFieldValidator(
             new Schema([
                 $usersTable,
+                NumericTable::createTable(),
             ])
         );
 
@@ -146,7 +151,7 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
         string $max,
     ): void {
         $constraint = new SchemaFieldConstraint(
-            table: UsersTable::class,
+            table: NumericTable::class,
             column: $column,
         );
 
@@ -165,6 +170,7 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
         yield 'smallint above' => [NumericTableColumns::SmallInt, 32_768, '-32768', '32767'];
         yield 'integer below' => [NumericTableColumns::Integer, -2_147_483_649, '-2147483648', '2147483647'];
         yield 'integer above' => [NumericTableColumns::Integer, 2_147_483_648, '-2147483648', '2147483647'];
+        yield 'integer subtype above' => [NumericTableColumns::NumericId, 2_147_483_648, '-2147483648', '2147483647'];
     }
 
     #[Test]
@@ -172,7 +178,7 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
     public function it_adds_no_violations_when_an_integer_fits_the_column(NumericTableColumns $column, int $value): void
     {
         $constraint = new SchemaFieldConstraint(
-            table: UsersTable::class,
+            table: NumericTable::class,
             column: $column,
         );
 
@@ -195,7 +201,7 @@ class SchemaFieldValidatorTest extends ConstraintValidatorTestCase
     public function it_adds_no_violations_when_an_integer_column_receives_null(): void
     {
         $constraint = new SchemaFieldConstraint(
-            table: UsersTable::class,
+            table: NumericTable::class,
             column: NumericTableColumns::Integer,
         );
 
