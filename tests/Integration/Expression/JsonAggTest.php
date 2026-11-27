@@ -32,7 +32,8 @@ final class JsonAggTest extends DbalReaderTestCase
     {
         $qb = $this->connection()->createQueryBuilder();
         $value = new SqlExpression('v.n');
-        $aggregate = new JsonAgg($value, $ordered ? new OrderBy(OrderBy::field($value, OrderBy::ASC)) : null, $filter);
+        $orderBy = $ordered ? new OrderBy(OrderBy::field($value, OrderBy::ASC)) : null;
+        $aggregate = null === $filter ? new JsonAgg($value, $orderBy) : JsonAgg::filtered($value, $filter, $orderBy);
 
         $qb->select($aggregate->toSQL())->from('(VALUES (2), (1), (NULL::int))', 'v(n)');
 
